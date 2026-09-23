@@ -1,0 +1,11 @@
+<form method="post" action="/contact">
+  <label for="contact-name">Name</label>
+  <input id="contact-name" name="name" required maxlength="120">
+  <label for="contact-email">Email</label>
+  <input id="contact-email" name="email" type="email" required>
+  <label for="contact-message">Message</label>
+  <textarea id="contact-message" name="message" required maxlength="5000"></textarea>
+  <label class="honeypot" for="contact-company">Company</label>
+  <input class="honeypot" id="contact-company" name="honeypot" tabindex="-1" autocomplete="off">
+  <button type="submit">Send message</button>
+</form>

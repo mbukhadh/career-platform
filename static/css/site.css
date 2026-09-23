@@ -39,3 +39,8 @@ a:focus-visible {
   outline: 3px solid #d97706;
   outline-offset: 3px;
 }
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+}
