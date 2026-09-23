@@ -41,6 +41,9 @@ explicitly out of scope for the first release.
   ordinary content changes.
 - Contact details are not rendered in the initial public HTML or exposed in
   unauthenticated API responses.
+- The public profile remains viewable using a versioned last-known-good
+  snapshot when the database is unavailable; the fallback must not expose
+  drafts or protected contact details.
 - The public site is usable on mobile and desktop, keyboard navigable, and
   provides meaningful metadata for search and link previews.
 - Adding a second profile, private section, or project collection later has a
@@ -119,7 +122,9 @@ queries.
 
 The implementation plan must confirm the exact hosting provider, secrets
 management, email/contact delivery mechanism, and whether a local development
-database uses Docker or another supported setup.
+database uses Docker or another supported setup. It must also define where the
+versioned public snapshot is stored and how it is atomically promoted after a
+successful content update.
 
 ## Domain model
 
@@ -151,14 +156,22 @@ be explicit rather than inferred from creation timestamps.
 2. The server resolves the public profile by its published slug.
 3. A repository/data-access module fetches only published profile and child
    records, applying explicit ordering.
-4. The server renders the page and metadata from the result.
-5. A contact request, if enabled, is handled by a server route or server
+4. If the database read fails or times out, the server loads the most recent
+   validated, versioned public snapshot. This snapshot contains only
+   published, public-safe profile content and is suitable for rendering the
+   page and metadata without database access.
+5. The server renders the page and metadata from either the database result or
+   the snapshot, marking the database result as the source of the newly
+   promoted snapshot only after validation succeeds.
+6. A contact request, if enabled, is handled by a server route or server
    action that validates input, rate-limits abuse, and forwards to the
    protected destination without returning it to the client.
 
 No client-side query should be able to select arbitrary profiles or retrieve
 draft/private records. The data-access boundary should make the published
-filter difficult to omit accidentally, and tests should cover that invariant.
+filter difficult to omit accidentally. Snapshot generation must use the same
+published-content boundary, must exclude protected contact configuration, and
+must fail without replacing the existing snapshot if validation fails.
 
 ## Contact and privacy requirements
 
@@ -191,6 +204,13 @@ accessibility checks should be supplemented by a keyboard-focused smoke test.
 
 - Missing or unpublished profiles should produce a deliberate not-found
   response rather than an empty success page.
+- A database outage must not take down the public profile: serve the latest
+  validated public snapshot when one exists.
+- Snapshot reads must be independent of the unavailable database and must be
+  atomic so visitors never receive a partially written snapshot.
+- If neither the database nor a valid snapshot is available, return a
+  deliberate service-unavailable response rather than an empty or
+  success-shaped page.
 - Database and contact-provider failures should be logged server-side with
   actionable context but without secrets or personal message contents.
 - Public errors should be concise and should not expose SQL, stack traces,
@@ -205,6 +225,8 @@ accessibility checks should be supplemented by a keyboard-focused smoke test.
 The implementation should include:
 
 - Data-access tests proving unpublished and private records are excluded.
+- Snapshot tests proving database failure serves the last-known-good public
+  profile, invalid snapshots are rejected, and snapshot updates are atomic.
 - Model/migration tests for profile ownership, ordering, publication state, and
   ongoing date ranges.
 - Route or component tests for the public resume sections and not-found state.
@@ -218,11 +240,12 @@ The implementation should include:
 Implementation should be planned in these independently verifiable slices:
 
 1. Application shell, configuration, database connection, migrations, and
-   seed data.
+   seed data, including the versioned public snapshot mechanism.
 2. Typed domain model and published-content data-access boundary.
 3. Responsive public profile/resume page with SEO metadata.
 4. Protected contact flow and abuse controls.
-5. Automated tests, accessibility checks, and deployment configuration.
+5. Snapshot fallback, failure-mode tests, accessibility checks, and deployment
+   configuration.
 
 Later features should extend the domain through new profile-scoped entities and
 explicit permissions rather than by adding platform behavior directly to the
