@@ -1,0 +1,9 @@
+{% if profile.projects %}
+  {% for project in profile.projects %}
+  <article>
+    <h3>{{ project.name }}</h3>
+    <p>{{ project.description }}</p>
+    {% if project.url %}<a href="{{ project.url }}">View {{ project.name }}</a>{% endif %}
+  </article>
+  {% endfor %}
+{% else %}<p>No projects published.</p>{% endif %}

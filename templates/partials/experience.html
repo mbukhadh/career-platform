@@ -1,0 +1,14 @@
+{% if profile.experiences %}
+  {% for item in profile.experiences %}
+  <article>
+    <h3>{{ item.title }} · {{ item.employer }}</h3>
+    <p>{{ item.start_date }} – {{ item.end_date or "Present" }}{% if item.location %} · {{ item.location }}{% endif %}</p>
+    <p>{{ item.summary }}</p>
+    {% if item.accomplishments %}
+    <ul>
+      {% for accomplishment in item.accomplishments %}<li>{{ accomplishment.content }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </article>
+  {% endfor %}
+{% else %}<p>No experience entries published.</p>{% endif %}

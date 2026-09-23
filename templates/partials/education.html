@@ -1,0 +1,9 @@
+{% if profile.education %}
+  {% for item in profile.education %}
+  <article>
+    <h3>{{ item.program }}</h3>
+    <p>{{ item.institution }}</p>
+    {% if item.details %}<p>{{ item.details }}</p>{% endif %}
+  </article>
+  {% endfor %}
+{% else %}<p>No education entries published.</p>{% endif %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.name }} | {{ profile.headline }}{% endblock %}
+
+{% block content %}
+<header class="site-header">
+  <div class="page-shell">
+    <p class="eyebrow">Resume</p>
+    <h1>{{ profile.name }}</h1>
+    <p class="headline">{{ profile.headline }}</p>
+    {% if profile.location %}<p>{{ profile.location }}</p>{% endif %}
+    <a class="button" href="#contact">Get in touch</a>
+  </div>
+</header>
+<main class="page-shell">
+  <section aria-labelledby="summary-heading">
+    <h2 id="summary-heading">Professional Summary</h2>
+    <p>{{ profile.summary }}</p>
+  </section>
+  <section aria-labelledby="experience-heading">
+    <h2 id="experience-heading">Experience</h2>
+    {% include "partials/experience.html" %}
+  </section>
+  <section aria-labelledby="education-heading">
+    <h2 id="education-heading">Education</h2>
+    {% include "partials/education.html" %}
+  </section>
+  <section aria-labelledby="skills-heading">
+    <h2 id="skills-heading">Skills</h2>
+    {% include "partials/skills.html" %}
+  </section>
+  <section aria-labelledby="projects-heading">
+    <h2 id="projects-heading">Projects</h2>
+    {% include "partials/projects.html" %}
+  </section>
+  <section id="contact" aria-labelledby="contact-heading">
+    <h2 id="contact-heading">Contact</h2>
+    <p>Interested in working together? Get in touch.</p>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="page-shell"><small>Profile source: {{ profile_source }}</small></div>
+</footer>
+{% endblock %}
