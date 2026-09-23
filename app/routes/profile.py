@@ -24,7 +24,11 @@ def profile_page(request: Request, slug: str) -> HTMLResponse:
     loader = getattr(request.app.state, "profile_loader", lambda _: (None, "database"))
     profile, source = loader(slug)
     if profile is None:
-        template = "errors/service-unavailable.html" if source == "snapshot-error" else "errors/not-found.html"
+        template = (
+            "errors/service-unavailable.html"
+            if source == "snapshot-error"
+            else "errors/not-found.html"
+        )
         status_code = 503 if source == "snapshot-error" else 404
         return request.app.state.templates.TemplateResponse(
             request=request,

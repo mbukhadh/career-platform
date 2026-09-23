@@ -2,10 +2,11 @@ import json
 import logging
 import os
 import tempfile
+from collections.abc import Callable
 from dataclasses import asdict
 from datetime import date
 from pathlib import Path
-from typing import Callable
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy.exc import DBAPIError, OperationalError
@@ -32,14 +33,17 @@ def _json_default(value: object) -> str:
 def _profile_from_payload(payload: object, slug: str) -> PublishedProfile:
     if not isinstance(payload, dict) or payload.get("slug") != slug:
         raise ValueError("snapshot profile mismatch")
+    profile_payload: dict[str, Any] = payload
     required = ("name", "headline", "summary", "location")
-    if any(key not in payload for key in required):
+    if any(key not in profile_payload for key in required):
         raise ValueError("snapshot missing profile field")
 
-    def items(name: str) -> list[object]:
-        values = payload.get(name, [])
+    def items(name: str) -> list[dict[str, Any]]:
+        values = profile_payload.get(name, [])
         if not isinstance(values, list):
-            raise ValueError(f"snapshot field {name} must be a list")
+            raise TypeError(f"snapshot field {name} must be a list")
+        if not all(isinstance(item, dict) for item in values):
+            raise TypeError(f"snapshot field {name} contains an invalid item")
         return values
 
     experiences = tuple(
@@ -100,10 +104,10 @@ def _profile_from_payload(payload: object, slug: str) -> PublishedProfile:
     )
     return PublishedProfile(
         slug=slug,
-        name=payload["name"],
-        headline=payload["headline"],
-        summary=payload["summary"],
-        location=payload["location"],
+        name=profile_payload["name"],
+        headline=profile_payload["headline"],
+        summary=profile_payload["summary"],
+        location=profile_payload["location"],
         experiences=experiences,
         education=education,
         skill_groups=groups,
@@ -138,7 +142,9 @@ def read_latest_snapshot(snapshot_dir: Path, slug: str) -> PublishedProfile | No
             with candidate.open(encoding="utf-8") as snapshot_file:
                 return _profile_from_payload(json.load(snapshot_file), slug)
         except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
-            logger.warning("Ignoring invalid public profile snapshot", extra={"slug": slug})
+            logger.warning(
+                "Ignoring invalid public profile snapshot", extra={"slug": slug}
+            )
     return None
 
 
@@ -158,4 +164,4 @@ def load_profile_with_fallback(
         return None, "database"
 
     profile = read_latest_snapshot(snapshot_dir, slug)
-    return profile, "snapshot" if profile is not None else "snapshot"
+    return profile, "snapshot"

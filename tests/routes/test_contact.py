@@ -24,7 +24,12 @@ def test_provider_failure_is_not_reported_as_success():
     app.state.contact_sender = sender
     response = TestClient(app).post(
         "/contact",
-        data={"name": "A", "email": "a@example.com", "message": "Hello", "honeypot": ""},
+        data={
+            "name": "A",
+            "email": "a@example.com",
+            "message": "Hello",
+            "honeypot": "",
+        },
     )
     assert response.status_code == 502
     assert "to_address" not in response.text

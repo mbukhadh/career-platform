@@ -1,5 +1,3 @@
-from datetime import date
-
 from app.domain.public_profile import PublishedProfile
 from app.snapshots import (
     load_profile_with_fallback,

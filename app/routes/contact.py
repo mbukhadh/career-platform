@@ -24,7 +24,9 @@ def contact(
 
     client_host = request.client.host if request.client else "unknown"
     if not request.app.state.contact_rate_limiter.allow(client_host):
-        return HTMLResponse("Too many requests. Please try again later.", status_code=429)
+        return HTMLResponse(
+            "Too many requests. Please try again later.", status_code=429
+        )
     try:
         request.app.state.contact_sender.send(contact_message)
     except Exception:

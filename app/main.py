@@ -6,8 +6,8 @@ from app.config import get_settings
 from app.contact import ContactSender, RateLimiter
 from app.db import get_session_factory
 from app.repositories.public_profile import get_published_profile
-from app.routes.profile import router as profile_router
 from app.routes.contact import router as contact_router
+from app.routes.profile import router as profile_router
 from app.snapshots import load_profile_with_fallback
 
 
