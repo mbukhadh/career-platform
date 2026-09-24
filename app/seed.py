@@ -70,7 +70,7 @@ def seed_database(session: Session) -> None:
                 "A database-driven resume site built with FastAPI and SQLite "
                 "in GitHub Codespaces."
             ),
-            url="https://github.com/mbukhadh/career_platform",
+            url="https://github.com/mbukhadh/career-platform",
             display_order=0,
             is_published=True,
         )

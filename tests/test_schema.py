@@ -20,6 +20,7 @@ def test_seed_creates_one_published_profile_with_ordered_content():
         assert [item.display_order for item in profile.projects] == sorted(
             item.display_order for item in profile.projects
         )
+        assert profile.projects[0].url == "https://github.com/mbukhadh/career-platform"
 
 
 def test_contact_destination_is_not_public_profile_data():
