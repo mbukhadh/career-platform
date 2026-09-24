@@ -3,7 +3,7 @@
   <article>
     <h3>{{ item.program }}</h3>
     <p>{{ item.institution }}</p>
-    {% if item.start_date or item.end_date %}<p>{{ item.start_date|resume_date if item.start_date else "" }}{% if item.start_date %} – {% endif %}{{ item.end_date|resume_date }}</p>{% endif %}
+    {% if item.end_date %}<p>Expected {{ item.end_date|resume_date }}</p>{% elif item.start_date %}<p>{{ item.start_date|resume_date }} – Present</p>{% endif %}
     {% if item.details %}<p>{{ item.details }}</p>{% endif %}
   </article>
   {% endfor %}

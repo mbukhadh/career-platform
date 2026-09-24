@@ -63,7 +63,7 @@ class Experience(Timestamped, Base):
     profile_id: Mapped[str] = mapped_column(ForeignKey("profiles.id"), index=True)
     employer: Mapped[str] = mapped_column(String(200))
     title: Mapped[str] = mapped_column(String(200))
-    start_date: Mapped[date] = mapped_column(Date)
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     location: Mapped[str | None] = mapped_column(String(200), nullable=True)
     summary: Mapped[str] = mapped_column(Text)

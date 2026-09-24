@@ -40,10 +40,10 @@ def seed_database(session: Session) -> None:
     )
     experience = Experience(
         profile=profile,
-        employer="Experience",
+        employer="",
         title="Experience — coming soon",
-        start_date=date(2026, 1, 1),
-        summary="Professional experience details coming soon.",
+        start_date=None,
+        summary="",
         display_order=0,
         is_published=True,
     )
@@ -57,7 +57,7 @@ def seed_database(session: Session) -> None:
             is_published=True,
         )
     ]
-    tools = SkillGroup(name="Tools", display_order=0, is_published=True)
+    tools = SkillGroup(name="Programming & Data", display_order=0, is_published=True)
     tools.skills = [
         Skill(name="Python", display_order=0, is_published=True),
         Skill(name="SQL", display_order=1, is_published=True),

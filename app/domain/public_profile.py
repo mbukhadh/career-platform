@@ -13,7 +13,7 @@ class PublicAccomplishment:
 class PublicExperience:
     employer: str
     title: str
-    start_date: date
+    start_date: date | None
     end_date: date | None
     location: str | None
     summary: str

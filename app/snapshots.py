@@ -50,7 +50,9 @@ def _profile_from_payload(payload: object, slug: str) -> PublishedProfile:
         PublicExperience(
             employer=item["employer"],
             title=item["title"],
-            start_date=date.fromisoformat(item["start_date"]),
+            start_date=date.fromisoformat(item["start_date"])
+            if item.get("start_date")
+            else None,
             end_date=date.fromisoformat(item["end_date"])
             if item.get("end_date")
             else None,
