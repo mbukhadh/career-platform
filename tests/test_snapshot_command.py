@@ -19,7 +19,7 @@ def test_snapshot_command_writes_public_snapshot(tmp_path, monkeypatch):
     monkeypatch.setenv("SNAPSHOT_DIR", str(tmp_path / "snapshots"))
     get_settings.cache_clear()
 
-    run_snapshot_command(["--slug", "jane-doe"])
+    run_snapshot_command(["--slug", "mj-bukhadhour"])
 
     files = list((tmp_path / "snapshots").glob("*.json"))
     assert files

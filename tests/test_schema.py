@@ -10,7 +10,7 @@ def test_seed_creates_one_published_profile_with_ordered_content():
     Base.metadata.create_all(engine)
     with Session(engine) as session:
         seed_database(session)
-        profile = session.query(Profile).filter_by(slug="jane-doe").one()
+        profile = session.query(Profile).filter_by(slug="mj-bukhadhour").one()
         assert profile.is_published is True
         assert [item.display_order for item in profile.projects] == sorted(
             item.display_order for item in profile.projects
@@ -22,6 +22,6 @@ def test_contact_destination_is_not_public_profile_data():
     Base.metadata.create_all(engine)
     with Session(engine) as session:
         seed_database(session)
-        profile = session.query(Profile).filter_by(slug="jane-doe").one()
+        profile = session.query(Profile).filter_by(slug="mj-bukhadhour").one()
         assert hasattr(profile, "contact_configuration")
         assert profile.contact_configuration.to_address

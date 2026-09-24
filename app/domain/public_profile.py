@@ -60,6 +60,8 @@ class PublishedProfile:
     headline: str
     summary: str
     location: str | None
+    github_url: str | None = None
+    linkedin_url: str | None = None
     experiences: tuple[PublicExperience, ...] = ()
     education: tuple[PublicEducation, ...] = ()
     skill_groups: tuple[PublicSkillGroup, ...] = ()

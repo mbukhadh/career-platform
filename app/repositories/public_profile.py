@@ -97,6 +97,8 @@ def get_published_profile(session: Session, slug: str) -> PublishedProfile | Non
         headline=profile.headline,
         summary=profile.summary,
         location=profile.location,
+        github_url=profile.github_url,
+        linkedin_url=profile.linkedin_url,
         experiences=experiences,
         education=education,
         skill_groups=skill_groups,

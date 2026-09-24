@@ -36,6 +36,8 @@ class Profile(Timestamped, Base):
     headline: Mapped[str] = mapped_column(String(300))
     summary: Mapped[str] = mapped_column(Text)
     location: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    github_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     owner: Mapped[Owner] = relationship(back_populates="profiles")
     experiences: Mapped[list["Experience"]] = relationship(

@@ -20,7 +20,7 @@ def session():
 def test_repository_excludes_unpublished_children():
     with session() as db:
         seed_database(db)
-        profile = db.query(Profile).filter_by(slug="jane-doe").one()
+        profile = db.query(Profile).filter_by(slug="mj-bukhadhour").one()
         profile.experiences.append(
             Experience(
                 employer="Secret",
@@ -42,6 +42,6 @@ def test_repository_excludes_unpublished_children():
 def test_serialized_profile_contains_no_contact_destination():
     with session() as db:
         seed_database(db)
-        result = get_published_profile(db, "jane-doe")
+        result = get_published_profile(db, "mj-bukhadhour")
         payload = serialize_public_profile(result)
         assert "to_address" not in repr(payload)

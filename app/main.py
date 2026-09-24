@@ -16,6 +16,7 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory="static"), name="static")
     app.state.settings = get_settings()
     app.state.templates = Jinja2Templates(directory="templates")
+    app.state.templates.env.filters["resume_date"] = _format_resume_date
     app.state.contact_sender = ContactSender(app.state.settings)
     app.state.contact_rate_limiter = RateLimiter()
 
@@ -42,3 +43,9 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     return app
+
+
+def _format_resume_date(value):
+    if value is None:
+        return "Present"
+    return value.strftime("%b %Y")

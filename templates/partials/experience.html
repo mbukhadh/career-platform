@@ -2,7 +2,7 @@
   {% for item in profile.experiences %}
   <article>
     <h3>{{ item.title }} · {{ item.employer }}</h3>
-    <p>{{ item.start_date }} – {{ item.end_date or "Present" }}{% if item.location %} · {{ item.location }}{% endif %}</p>
+    <p>{{ item.start_date|resume_date }} – {{ item.end_date|resume_date }}{% if item.location %} · {{ item.location }}{% endif %}</p>
     <p>{{ item.summary }}</p>
     {% if item.accomplishments %}
     <ul>

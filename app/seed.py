@@ -10,7 +10,6 @@ from app.models import (
     ContactConfiguration,
     Education,
     Experience,
-    ExperienceAccomplishment,
     Owner,
     Profile,
     Project,
@@ -20,52 +19,40 @@ from app.models import (
 
 
 def seed_database(session: Session) -> None:
-    profile = session.scalar(select(Profile).where(Profile.slug == "jane-doe"))
+    profile = session.scalar(select(Profile).where(Profile.slug == "mj-bukhadhour"))
     if profile is not None:
         return
 
-    owner = Owner(name="Jane Doe")
+    owner = Owner(name="Mohammad (MJ) Bukhadhour")
     profile = Profile(
         owner=owner,
-        slug="jane-doe",
-        name="Jane Doe",
-        headline="Software engineer building useful products",
-        summary="Software engineer focused on reliable, human-centered web products.",
-        location="Codespaces",
+        slug="mj-bukhadhour",
+        name="Mohammad (MJ) Bukhadhour",
+        headline="Information Systems & Business Analytics student at LMU",
+        summary=(
+            "Senior at Loyola Marymount University studying Information Systems "
+            "and Business Analytics, graduating May 2027."
+        ),
+        location="Los Angeles, California",
+        github_url="https://github.com/mbukhadh",
+        linkedin_url="https://www.linkedin.com/in/mohammad-bukhadhour-ab7235391/",
         is_published=True,
     )
     experience = Experience(
         profile=profile,
-        employer="Example Labs",
-        title="Senior Software Engineer",
-        start_date=date(2022, 1, 1),
-        summary="Builds and operates product experiences for growing teams.",
+        employer="Experience",
+        title="Experience — coming soon",
+        start_date=date(2026, 1, 1),
+        summary="Professional experience details coming soon.",
         display_order=0,
         is_published=True,
-        accomplishments=[
-            ExperienceAccomplishment(
-                content="Improved product reliability through focused platform work.",
-                display_order=0,
-            )
-        ],
     )
-    previous = Experience(
-        profile=profile,
-        employer="Earlier Company",
-        title="Software Engineer",
-        start_date=date(2019, 1, 1),
-        end_date=date(2021, 12, 31),
-        summary="Delivered customer-facing web applications.",
-        display_order=1,
-        is_published=True,
-    )
-    profile.experiences = [experience, previous]
+    profile.experiences = [experience]
     profile.education = [
         Education(
-            institution="Example University",
-            program="Computer Science",
-            start_date=date(2015, 9, 1),
-            end_date=date(2019, 5, 31),
+            institution="Loyola Marymount University",
+            program="B.S. Information Systems & Business Analytics",
+            end_date=date(2027, 5, 31),
             display_order=0,
             is_published=True,
         )
@@ -79,8 +66,11 @@ def seed_database(session: Session) -> None:
     profile.projects = [
         Project(
             name="Career Platform",
-            description="A structured foundation for a resilient career profile.",
-            url="https://example.com/career-platform",
+            description=(
+                "A database-driven resume site built with FastAPI and SQLite "
+                "in GitHub Codespaces."
+            ),
+            url="https://github.com/mbukhadh/career_platform",
             display_order=0,
             is_published=True,
         )

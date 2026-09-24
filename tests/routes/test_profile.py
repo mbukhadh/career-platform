@@ -8,8 +8,8 @@ def client():
     app = create_app()
     app.state.profile_loader = lambda slug: (
         PublishedProfile(
-            slug="jane-doe",
-            name="Jane Doe",
+            slug="mj-bukhadhour",
+            name="Mohammad (MJ) Bukhadhour",
             headline="Engineer",
             summary="Professional Summary",
             location="Codespaces",
@@ -20,7 +20,7 @@ def client():
 
 
 def test_published_profile_renders_all_sections():
-    response = client().get("/profiles/jane-doe")
+    response = client().get("/profiles/mj-bukhadhour")
     assert response.status_code == 200
     assert "Professional Summary" in response.text
     assert "Experience" in response.text

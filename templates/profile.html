@@ -9,6 +9,10 @@
     <h1>{{ profile.name }}</h1>
     <p class="headline">{{ profile.headline }}</p>
     {% if profile.location %}<p>{{ profile.location }}</p>{% endif %}
+    <nav aria-label="Professional links">
+      {% if profile.github_url %}<a href="{{ profile.github_url }}">GitHub</a>{% endif %}
+      {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}">LinkedIn</a>{% endif %}
+    </nav>
     <a class="button" href="#contact">Get in touch</a>
   </div>
 </header>

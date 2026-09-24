@@ -17,7 +17,7 @@ contact delivery is configured. Initialize the database and seed the profile:
 ```bash
 alembic upgrade head
 python -m app.seed
-python -m app.generate_snapshot --slug jane-doe
+python -m app.generate_snapshot --slug mj-bukhadhour
 ```
 
 Snapshots contain only published public content. Generate a new snapshot after

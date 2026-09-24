@@ -16,7 +16,7 @@ def _render(request: Request, profile: PublishedProfile, source: str) -> HTMLRes
 
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request) -> HTMLResponse:
-    return profile_page(request, "jane-doe")
+    return profile_page(request, "mj-bukhadhour")
 
 
 @router.get("/profiles/{slug}", response_class=HTMLResponse)
