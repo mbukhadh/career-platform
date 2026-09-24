@@ -1,0 +1,10 @@
+{% if profile.skill_groups %}
+  {% for group in profile.skill_groups %}
+  <article>
+    <h3>{{ group.name }}</h3>
+    <ul class="tag-list">
+      {% for skill in group.skills %}<li>{{ skill.name }}</li>{% endfor %}
+    </ul>
+  </article>
+  {% endfor %}
+{% else %}<p>No skills published.</p>{% endif %}

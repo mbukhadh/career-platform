@@ -1,0 +1,46 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  color: #172033;
+  background: #f7f8fb;
+}
+
+.page-shell {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.site-header,
+.site-footer {
+  background: #172033;
+  color: #fff;
+}
+
+section {
+  padding: 2rem 0;
+  border-bottom: 1px solid #d7dce7;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.7rem 1rem;
+  color: #172033;
+  background: #fff;
+  border-radius: 0.3rem;
+}
+
+a:focus-visible {
+  outline: 3px solid #d97706;
+  outline-offset: 3px;
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+}
