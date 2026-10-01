@@ -19,7 +19,7 @@ migrated data**.
 
 **Comparison source:** Because the Codespace has no database either, Verify
 compares the VM against a local run on my laptop at the same commit, built the
-same way.
+same way. The laptop run used a throwaway database outside the repository.
 
 Each step lists where it runs, what runs, why, how it's checked, and how it's
 undone.
@@ -155,7 +155,7 @@ is built on the VM. See "Data decision" at the top.
 Replaced by the section 6 detour in the migration guide, which starts the app
 itself.
 
-- [ ] **Start Uvicorn reachable from outside, briefly**
+- [x] **Start Uvicorn reachable from outside, briefly**
   - Where: VM, in `~/career-platform`
   - What: `nohup uv run uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8000 > ~/uvicorn.log 2>&1 &`
   - Why: `0.0.0.0` accepts connections on every VM address, for one public
@@ -163,8 +163,9 @@ itself.
     restart on a crash or reboot; systemd takes that over next week.
   - Check: `ss -ltnp | grep 8000` shows `0.0.0.0:8000`.
   - Undo: `pkill -f "uvicorn app.main"`
+  - Result (10/1): `0.0.0.0:8000` listening on the VM.
 
-- [ ] **Open port 8000 temporarily**
+- [x] **Open port 8000 temporarily**
   - Where: **portal** (my step)
   - What: inbound rule `Temp-HTTP-8000`, priority 310, source Any, TCP 8000, Allow
   - Why: shows that one firewall rule is the whole difference between private
@@ -172,27 +173,30 @@ itself.
   - Check: `http://135.232.198.204:8000` loads in a browser; screenshot saved as
     `docs/evidence/ex03-site.png`.
   - Undo: delete `Temp-HTTP-8000`.
+  - Result (10/1): Site loaded at the public IP; VM log shows `GET / 200`. Screenshot saved as `docs/evidence/ex03-site.png`.
 
 ## 8. Verify
 
-- [ ] **Compare source and target**
+- [x] **Compare source and target**
   - Where: laptop (source, local run at the same commit) and VM (target)
   - What: record each row below.
   - Why: a page can load and still be wrong.
   - Check: every row matches. Any row that doesn't is recorded as a difference,
     not explained away.
   - Undo: nothing; read only.
+  - Result (10/1): All rows match; see table.
 
 | Check | Source (laptop) | Target (VM) | Match |
 | --- | --- | --- | --- |
-| Commit ID | | | |
-| Database integrity | | | |
-| Profile row | | | |
-| `/healthz` | | | |
-| Page content (name, headline, projects) | | | |
-| Data origin | seed | seed | — |
+| Commit ID (app code) | `05103f8` (`bd0a723` adds docs only; no app, template, migration, or lock changes) | `05103f8` | yes |
+| Database integrity | `ok` | `ok` | yes |
+| Profile row | `mj-bukhadhour \| Mohammad (MJ) Bukhadhour` | same | yes |
+| `/healthz` | `{"status":"ok"}` | `{"status":"ok"}` | yes |
+| Page `<h1>` | Mohammad (MJ) Bukhadhour | Mohammad (MJ) Bukhadhour | yes |
+| Page text, SHA-256 of visible text (first 16) | `f389fd7360f99112` | `f389fd7360f99112` | yes |
+| Data origin | seed | seed | — (not migrated data; see Data decision) |
 
-- [ ] **Close the public path**
+- [x] **Close the public path**
   - Where: portal, then VM
   - What: delete `Temp-HTTP-8000`; restart Uvicorn with `--host 127.0.0.1`
   - Why: two independent locks — no firewall rule for 8000, and an app that
@@ -200,10 +204,11 @@ itself.
   - Check: the public URL times out; `ss -ltnp` shows `127.0.0.1:8000`;
     `curl -s http://127.0.0.1:8000/healthz` over SSH returns `{"status":"ok"}`.
   - Undo: not needed; this is the safe state.
+  - Result (10/1): `Temp-HTTP-8000` deleted; public request times out; VM listens on `127.0.0.1:8000`; `/healthz` over SSH returns `{"status":"ok"}`.
 
 ## 9. Shutdown
 
-- [ ] **Stop the app and deallocate**
+- [x] **Stop the app and deallocate**
   - Where: VM, then laptop (Azure CLI)
   - What: `pkill -f "uvicorn app.main"` on the VM; list NSG inbound rules to
     confirm `Temp-HTTP-8000` is gone; then
@@ -213,6 +218,7 @@ itself.
   - Check: `az vm get-instance-view` reports `VM deallocated`, not
     `VM stopped`.
   - Undo: `az vm start -g rg-career-platform -n vm-career-platform`
+  - Result (10/1): inbound rules list only `Allow-SSH-Laptop` (`Temp-HTTP-8000` gone); power state `VM deallocated`.
 
 **Rollback for the whole migration:** the Codespace still has the code at the
 same commit, and the site can be rebuilt there with the same seed. Nothing on
