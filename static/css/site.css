@@ -16,15 +16,87 @@ body {
   padding: 2rem 1rem;
 }
 
+main.page-shell {
+  padding-top: 0.5rem;
+}
+
 .site-header,
 .site-footer {
   background: #172033;
   color: #fff;
 }
 
+.site-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: #c3cbdd;
+}
+
+.headline {
+  max-width: 60ch;
+  margin: 0.75rem 0 0;
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.location {
+  margin: 0.25rem 0 0;
+  color: #c3cbdd;
+}
+
+.site-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.site-header nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: #fff;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+
+.site-header nav a:hover {
+  text-decoration-thickness: 2px;
+}
+
 section {
-  padding: 2rem 0;
+  padding: 1.5rem 0;
   border-bottom: 1px solid #d7dce7;
+}
+
+main h2 {
+  margin: 0 0 0.75rem;
+}
+
+main h3 {
+  margin: 0 0 0.25rem;
+}
+
+main article p {
+  margin: 0 0 0.25rem;
+}
+
+main article + article {
+  margin-top: 1rem;
+}
+
+[aria-labelledby="experience-heading"] article > h3:only-child {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #55607a;
 }
 
 .button {
@@ -35,7 +107,58 @@ section {
   border-radius: 0.3rem;
 }
 
-a:focus-visible {
+.contact-form {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 32rem;
+  margin-top: 1.25rem;
+}
+
+.contact-form label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-weight: 600;
+}
+
+.contact-form input,
+.contact-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  font: inherit;
+  color: #172033;
+  background: #fff;
+  border: 1px solid #6b7487;
+  border-radius: 0.3rem;
+}
+
+.contact-form textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.contact-form button {
+  justify-self: start;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: #172033;
+  border: 0;
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+
+.contact-form button:hover {
+  background: #263352;
+}
+
+a:focus-visible,
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible,
+.contact-form button:focus-visible {
   outline: 3px solid #d97706;
   outline-offset: 3px;
 }
