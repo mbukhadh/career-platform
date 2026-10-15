@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy | Mohammad (MJ) Bukhadhour{% endblock %}
+
+{% block content %}
+<header class="site-header">
+  <div class="page-shell">
+    <p class="eyebrow"><a href="/">Resume</a></p>
+    <h1>Privacy</h1>
+    <p class="headline">What this site collects about you, why, who receives it, and what you can do about it.</p>
+  </div>
+</header>
+<main class="page-shell prose">
+  <p><small>Last updated: 15 October 2026</small></p>
+
+  <section aria-labelledby="who-heading">
+    <h2 id="who-heading">Who runs this site</h2>
+    <p>This is the personal resume site of Mohammad (MJ) Bukhadhour. I built it and run it myself. It is not a business and does not sell anything. If you have a question about this page, contact me on <a href="https://www.linkedin.com/in/mohammad-bukhadhour-ab7235391/">LinkedIn</a>.</p>
+  </section>
+
+  <section aria-labelledby="summary-heading">
+    <h2 id="summary-heading">The short version</h2>
+    <ul>
+      <li>Google Analytics measures which pages are viewed and which outside links are clicked. Its default enhanced measurement is on, so it also records scrolls, site searches, video plays, file downloads and form interactions. It sets cookies in your browser to do this.</li>
+      <li>The contact form is not currently delivering messages, so I may not receive anything you send through it. LinkedIn is the reliable way to reach me.</li>
+      <li>The servers that host the site keep standard technical logs of requests, which include your IP address.</li>
+      <li>There is no advertising, no account sign-up, and nothing is sold.</li>
+      <li>There is no cookie banner. Analytics starts when the page loads. Your choices are listed below.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="analytics-heading">
+    <h2 id="analytics-heading">Google Analytics</h2>
+    <p><strong>What:</strong> When you load a page, a script from Google records that the page was viewed. When you click a link that leaves this site, such as GitHub or LinkedIn, it records the address of that link. Google Analytics' default enhanced measurement is on, so besides page views and outbound link clicks it also records when you scroll down a page, site searches, video plays, file downloads, and form interactions, such as starting or submitting the contact form. For form interactions it records that the form was used, not the content you type. Along with these events, Google receives information your browser sends with every request: the page address and title, the page you came from, your browser and device type, screen size, language, and your IP address, which Google uses to estimate your country and city. Google says Google Analytics 4 does not store IP addresses.</p>
+    <p><strong>Cookies:</strong> The script stores two cookies in your browser, <code>_ga</code> and <code>_ga_SE674YJENK</code>. They hold a random ID so that repeat visits from the same browser can be counted as one visitor. By Google's default they last up to two years.</p>
+    <p><strong>Why:</strong> To see whether people find the site and which links they follow, so I can tell whether my resume is reaching recruiters.</p>
+    <p><strong>Who receives it:</strong> Google. I see aggregated reports, such as page view counts, countries and devices. I do not see your name or email address in these reports, and I do not try to identify individual visitors.</p>
+    <p><strong>How long:</strong> Google keeps visit-level data for the retention period set in my Google Analytics account. Summary reports can be kept longer.</p>
+  </section>
+
+  <section aria-labelledby="contact-form-heading">
+    <h2 id="contact-form-heading">The contact form</h2>
+    <p><strong>What:</strong> Your name, email address and message.</p>
+    <p><strong>Why:</strong> So I can read your message and reply.</p>
+    <p><strong>Current status:</strong> The contact form is not currently delivering messages. I may not receive anything you send through it. LinkedIn is the reliable way to reach me.</p>
+    <p><strong>Who receives it:</strong> When you submit the form, the site tries to pass your name, email address and message to Resend, an email delivery service. Resend does not accept it because email sending is not set up, so the message is not delivered to me. The site does not save messages in its own database, so an undelivered message is not kept anywhere on the site.</p>
+    <p><strong>How long:</strong> To limit spam, the server keeps your IP address and the times you submitted the form in memory. This is cleared when the server restarts.</p>
+  </section>
+
+  <section aria-labelledby="hosting-heading">
+    <h2 id="hosting-heading">Hosting and server logs</h2>
+    <p>Like almost every website, the servers that deliver these pages record each request, including your IP address, the page requested, the time, and your browser type. I use these logs to keep the site running and to investigate problems. The site is hosted on Railway. Cloudflare provides its domain name service and handles requests to the <code>www</code> address.</p>
+  </section>
+
+  <section aria-labelledby="choices-heading">
+    <h2 id="choices-heading">Your choices</h2>
+    <ul>
+      <li><strong>Block analytics.</strong> You can block or delete cookies in your browser settings, use a content blocker, or install the <a href="https://tools.google.com/dlpage/gaoptout">Google Analytics opt-out add-on</a> from Google. The site works the same without analytics.</li>
+      <li><strong>Skip the form.</strong> You can reach me through LinkedIn instead of the contact form.</li>
+      <li><strong>Ask me to delete your message.</strong> Ask through LinkedIn and I will delete any message I received.</li>
+    </ul>
+    <p>Things this site does <strong>not</strong> do yet: it has no cookie consent banner, and it does not respond to Do Not Track or Global Privacy Control browser signals. I cannot link Google Analytics data to you by name, so I cannot look up or delete it for you.</p>
+  </section>
+
+  <section aria-labelledby="changes-heading">
+    <h2 id="changes-heading">Changes</h2>
+    <p>If what the site collects changes, I will update this page and the date at the top.</p>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="page-shell"><small><a href="/">Back to resume</a></small></div>
+</footer>
+{% endblock %}

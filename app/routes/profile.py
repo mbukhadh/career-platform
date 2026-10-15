@@ -19,6 +19,13 @@ def home(request: Request) -> HTMLResponse:
     return profile_page(request, "mj-bukhadhour")
 
 
+@router.get("/privacy", response_class=HTMLResponse)
+def privacy(request: Request) -> HTMLResponse:
+    return request.app.state.templates.TemplateResponse(
+        request=request, name="privacy.html", context={}
+    )
+
+
 @router.get("/profiles/{slug}", response_class=HTMLResponse)
 def profile_page(request: Request, slug: str) -> HTMLResponse:
     loader = getattr(request.app.state, "profile_loader", lambda _: (None, "database"))

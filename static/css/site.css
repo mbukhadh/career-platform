@@ -68,6 +68,15 @@ main.page-shell {
   text-underline-offset: 0.25em;
 }
 
+.site-footer a,
+.site-header .eyebrow a {
+  color: inherit;
+}
+
+.prose {
+  max-width: 65ch;
+}
+
 .site-header nav a:hover {
   text-decoration-thickness: 2px;
 }

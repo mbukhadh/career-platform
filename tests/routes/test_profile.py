@@ -80,3 +80,15 @@ def test_missing_profile_returns_not_found():
     app.state.profile_loader = lambda slug: (None, "database")
     response = TestClient(app).get("/profiles/missing")
     assert response.status_code == 404
+
+
+def test_profile_footer_links_to_privacy_page():
+    response = client().get("/")
+    assert '<a href="/privacy">Privacy</a>' in response.text
+
+
+def test_privacy_page_renders_without_database():
+    response = TestClient(create_app()).get("/privacy")
+    assert response.status_code == 200
+    assert "<h1>Privacy</h1>" in response.text
+    assert "_ga_SE674YJENK" in response.text
