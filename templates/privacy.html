@@ -21,18 +21,19 @@
   <section aria-labelledby="summary-heading">
     <h2 id="summary-heading">The short version</h2>
     <ul>
-      <li>Google Analytics measures which pages are viewed and which outside links are clicked. Its default enhanced measurement is on, so it also records scrolls, site searches, video plays, file downloads and form interactions. It sets cookies in your browser to do this.</li>
+      <li>Google Analytics only runs if you click Accept on the cookie banner. It then measures which pages are viewed and which outside links are clicked. Its default enhanced measurement is on, so it also records scrolls, site searches, video plays, file downloads and form interactions. It sets cookies in your browser to do this.</li>
       <li>The contact form is not currently delivering messages, so I may not receive anything you send through it. LinkedIn is the reliable way to reach me.</li>
       <li>The servers that host the site keep standard technical logs of requests, which include your IP address.</li>
       <li>There is no advertising, no account sign-up, and nothing is sold.</li>
-      <li>There is no cookie banner. Analytics starts when the page loads. Your choices are listed below.</li>
+      <li>A banner asks whether you accept analytics cookies. If you click Decline or make no choice, Google Analytics does not load. You can change your choice with the Cookie settings link at the bottom of the resume and of this page. Your choices are listed below.</li>
     </ul>
   </section>
 
   <section aria-labelledby="analytics-heading">
     <h2 id="analytics-heading">Google Analytics</h2>
-    <p><strong>What:</strong> When you load a page, a script from Google records that the page was viewed. When you click a link that leaves this site, such as GitHub or LinkedIn, it records the address of that link. Google Analytics' default enhanced measurement is on, so besides page views and outbound link clicks it also records when you scroll down a page, site searches, video plays, file downloads, and form interactions, such as starting or submitting the contact form. For form interactions it records that the form was used, not the content you type. Along with these events, Google receives information your browser sends with every request: the page address and title, the page you came from, your browser and device type, screen size, language, and your IP address, which Google uses to estimate your country and city. Google says Google Analytics 4 does not store IP addresses.</p>
-    <p><strong>Cookies:</strong> The script stores two cookies in your browser, <code>_ga</code> and <code>_ga_SE674YJENK</code>. They hold a random ID so that repeat visits from the same browser can be counted as one visitor. By Google's default they last up to two years.</p>
+    <p><strong>What:</strong> If you click Accept, a script from Google loads and records each page you view. If you click Decline or make no choice, the script is not loaded and none of the following is sent to Google. When you click a link that leaves this site, such as GitHub or LinkedIn, it records the address of that link. Google Analytics' default enhanced measurement is on, so besides page views and outbound link clicks it also records when you scroll down a page, site searches, video plays, file downloads, and form interactions, such as starting or submitting the contact form. For form interactions it records that the form was used, not the content you type. Along with these events, Google receives information your browser sends with every request: the page address and title, the page you came from, your browser and device type, screen size, language, and your IP address, which Google uses to estimate your country and city. Google says Google Analytics 4 does not store IP addresses.</p>
+    <p><strong>Cookies:</strong> After you accept, the script stores two cookies in your browser, <code>_ga</code> and <code>_ga_SE674YJENK</code>. They hold a random ID so that repeat visits from the same browser can be counted as one visitor. By Google's default they last up to two years.</p>
+    <p><strong>Your choice:</strong> The site saves your answer in your browser's local storage, under the name <code>analytics-consent</code>, with the value <code>accepted</code> or <code>declined</code>. This is how the banner remembers not to ask again. It stays in your browser until you clear this site's data. It is not a cookie and the site does not send it to me or to Google.</p>
     <p><strong>Why:</strong> To see whether people find the site and which links they follow, so I can tell whether my resume is reaching recruiters.</p>
     <p><strong>Who receives it:</strong> Google. I see aggregated reports, such as page view counts, countries and devices. I do not see your name or email address in these reports, and I do not try to identify individual visitors.</p>
     <p><strong>How long:</strong> Google keeps visit-level data for the retention period set in my Google Analytics account. Summary reports can be kept longer.</p>
@@ -55,11 +56,12 @@
   <section aria-labelledby="choices-heading">
     <h2 id="choices-heading">Your choices</h2>
     <ul>
+      <li><strong>Decline, or change your choice later.</strong> Click Decline on the banner, or use the Cookie settings link at the bottom of the resume or of this page to switch. When you switch to Decline, the site tells Google Analytics to stop sending anything more from that page and deletes the <code>_ga</code> and <code>_ga_SE674YJENK</code> cookies. Data already sent to Google before you declined is not deleted.</li>
       <li><strong>Block analytics.</strong> You can block or delete cookies in your browser settings, use a content blocker, or install the <a href="https://tools.google.com/dlpage/gaoptout">Google Analytics opt-out add-on</a> from Google. The site works the same without analytics.</li>
       <li><strong>Skip the form.</strong> You can reach me through LinkedIn instead of the contact form.</li>
       <li><strong>Ask me to delete your message.</strong> Ask through LinkedIn and I will delete any message I received.</li>
     </ul>
-    <p>Things this site does <strong>not</strong> do yet: it has no cookie consent banner, and it does not respond to Do Not Track or Global Privacy Control browser signals. I cannot link Google Analytics data to you by name, so I cannot look up or delete it for you.</p>
+    <p>Things this site does <strong>not</strong> do yet: it does not respond to Do Not Track or Global Privacy Control browser signals, so use the banner instead. I cannot link Google Analytics data to you by name, so I cannot look up or delete it for you.</p>
   </section>
 
   <section aria-labelledby="changes-heading">
@@ -68,6 +70,6 @@
   </section>
 </main>
 <footer class="site-footer">
-  <div class="page-shell"><small><a href="/">Back to resume</a></small></div>
+  <div class="page-shell"><small><a href="/">Back to resume</a> · <a href="/privacy#choices-heading" data-cookie-settings>Cookie settings</a></small></div>
 </footer>
 {% endblock %}
