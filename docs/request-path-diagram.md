@@ -8,6 +8,10 @@ redirected to https.
 
 ## Railway: full request path
 
+![Railway request path](images/request-path-railway.png)
+
+Mermaid source:
+
 ```mermaid
 flowchart LR
   subgraph HOME["Home network: private side"]
@@ -45,6 +49,10 @@ flowchart LR
 ```
 
 ## Azure: what replaces the Railway box
+
+![Azure host side](images/request-path-azure.png)
+
+Mermaid source:
 
 ```mermaid
 flowchart LR
