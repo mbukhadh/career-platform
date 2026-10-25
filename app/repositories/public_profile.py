@@ -11,9 +11,13 @@ from app.domain.public_profile import (
     PublishedProfile,
     serialize_public_profile,
 )
-from app.models import Profile
+from app.models import Profile, Project
 
-__all__ = ["get_published_profile", "serialize_public_profile"]
+__all__ = [
+    "get_published_profile",
+    "get_published_projects",
+    "serialize_public_profile",
+]
 
 
 def get_published_profile(session: Session, slug: str) -> PublishedProfile | None:
@@ -103,4 +107,31 @@ def get_published_profile(session: Session, slug: str) -> PublishedProfile | Non
         education=education,
         skill_groups=skill_groups,
         projects=projects,
+    )
+
+
+def get_published_projects(session: Session, slug: str) -> tuple[PublicProject, ...]:
+    """Published projects for a published profile, in display order.
+
+    Database errors propagate so the caller can report them instead of
+    showing an empty list.
+    """
+    rows = session.scalars(
+        select(Project)
+        .join(Profile, Project.profile_id == Profile.id)
+        .where(
+            Profile.slug == slug,
+            Profile.is_published.is_(True),
+            Project.is_published.is_(True),
+        )
+        .order_by(Project.display_order)
+    )
+    return tuple(
+        PublicProject(
+            name=item.name,
+            description=item.description,
+            url=item.url,
+            display_order=item.display_order,
+        )
+        for item in rows
     )

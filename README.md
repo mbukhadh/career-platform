@@ -20,7 +20,8 @@ Project 1 submission index: [`docs/project-1-submission.md`](docs/project-1-subm
 ## What the site does
 
 - Shows my name, introduction, education, experience (a labeled placeholder),
-  skills, projects, and GitHub/LinkedIn links, all read from the database.
+  skills and GitHub/LinkedIn links from `app/profile_content.py`, plus
+  projects read from the database on every request.
 - The one project entry is this website, described as a project in progress.
 - Has a Privacy page, a cookie banner, and GA4 that loads only after Accept
   (commit `e7caa8c`).
@@ -28,20 +29,22 @@ Project 1 submission index: [`docs/project-1-submission.md`](docs/project-1-subm
   out of scope for Project 1. Whether Railway has one is **unverified**.
 - `/healthz` returns `{"status":"ok"}` without touching the database.
 
-How the database is used:
+How the database is used. The profile is in code, so it never depends on the
+database. Only projects are queried, on every request:
 
-| Situation | What happens now | Evidence |
-| --- | --- | --- |
-| Healthy | 200, footer says `Profile source: database` | [checks §1](docs/evidence/project-1-checks-2026-10-25.md#live-page-reads-the-database) |
-| No projects in the table | Profile renders with "No projects published." | `templates/partials/projects.html` |
-| Database down, snapshot saved | Last snapshot rendered, footer says `snapshot` | `app/snapshots.py` |
-| Database down, no snapshot (Railway's case) | Whole page replaced by "Temporarily unavailable", 503; `/healthz` still 200 | `tests/routes/test_database_down.py`; plan §2 results in [Railway plan](docs/superpowers/plans/2026-10-08-railway-postgres-migration.md) |
-| Database recovers | Designed to read the database again on the next request (engine uses `pool_pre_ping`); no recovery test saved | **unverified** |
+| Situation | Status | Page | Evidence |
+| --- | --- | --- | --- |
+| Healthy | 200 | Profile and projects; footer `Projects source: database` | [db-failure-recovery](docs/evidence/db-failure-recovery.md), test `test_healthy_database_shows_projects_with_200` |
+| Projects table empty | 200 | Profile and "No projects published yet." | same file, `test_empty_projects_table_returns_200_with_empty_message` |
+| Projects query fails | 503 | Profile still shown, with "Projects temporarily unavailable". No cached or sample content | same file, `test_database_failure_keeps_profile_and_returns_503` |
+| Database comes back | 200 on the next request, no restart | Projects again | same file (same process ID before and after), `test_next_request_recovers_without_restart` |
 
-**Gap against requirement 1:** the assignment wants the *profile to stay
-visible* with "Projects temporarily unavailable" and a 503. The app doesn't do
-that yet: it either shows a snapshot (200) or hides the whole profile (503).
-See [Remaining limitations](#remaining-limitations).
+A failed query isn't remembered. Each request opens a new session. File-based
+SQLite uses no connection pool, so a missing file shows up on the next
+request. PostgreSQL uses `pool_pre_ping` and a 5-second connect timeout
+(`app/db.py`). The earlier snapshot fallback and full-page 503 were removed,
+because they hid the profile or served saved content. Verified locally
+on SQLite on 2026-10-25. A PostgreSQL outage on Railway was **not** tested.
 
 The initial database was SQLite because the course's build plan required it
 ([original plan](docs/superpowers/plans/2026-09-23-personal-resume-career-platform-plan.md),
@@ -60,13 +63,12 @@ uv run alembic upgrade head
 uv run python -m app.seed    # local only, never on Railway
 uv run uvicorn app.main:create_app --factory --reload --host 0.0.0.0 --port 8000
 curl -fsS http://localhost:8000/healthz
-uv run pytest -q             # 33 passed on 2026-10-25
+uv run pytest -q             # 34 passed on 2026-10-25
 ```
 
-`python -m app.generate_snapshot --slug mj-bukhadhour` writes a snapshot of
-published content for the database-down fallback. Set `RESEND_API_KEY`,
+Set `RESEND_API_KEY`,
 `CONTACT_FROM` and `CONTACT_TO` in `.env` only when testing contact delivery.
-Never commit `.env`, SQLite files, snapshots, backups, or provider credentials.
+Never commit `.env`, SQLite files, backups, or provider credentials.
 
 ### Railway (live)
 
@@ -230,10 +232,11 @@ by hand), and TLS (Railway issues its own certificate).
    ([data comparison](docs/evidence/railway-data-comparison.md), commit
    `8550408`, 2026-10-13).
 
-**Limitation:** the VM's data was itself made by `app/seed.py` (see
-[ex03](docs/evidence/ex03.md)), and no row was edited before the transfer.
-So this evidence can't tell a transfer apart from a reseed. The assignment
-asks for one real change to the data first. That was **not done**.
+**No real data edit was made before the migration.** The VM's data was
+itself created by `app/seed.py` (see [ex03](docs/evidence/ex03.md)), and no
+row was changed before the transfer. So the matching comparison doesn't prove
+the rows were transferred rather than reseeded. The assignment asks for one
+real change first to rule that out. **That was not done.**
 
 **Cutover:** the apex record moved from A `135.232.198.204` (recorded
 2026-10-13 22:06 UTC in [dns-after-zoho](docs/evidence/dns-after-zoho.md)) to
@@ -368,8 +371,8 @@ in commit `81403ba`. I still need to rewrite it in my own words.
   nginx, certbot and OS patches, not the responsibility.
 - What I'd change: save command output as I go instead of rebuilding it
   afterward; make a real data edit before migrating; take the backup *before*
-  any copy step (the ex03 slip); build the "Projects temporarily unavailable"
-  behaviour the assignment asks for; and never put API keys where a
+  any copy step (the ex03 slip); test the database-failure behaviour from
+  the start, not at the end; and never put API keys where a
   screenshot can catch them (from the Ex06 reflection).
 
 ## Costs, credits, expiration and cleanup
@@ -386,15 +389,16 @@ in commit `81403ba`. I still need to rewrite it in my own words.
 
 ## Remaining limitations
 
-- **Database failure behaviour doesn't meet requirement 1.** There's no
-  "Projects temporarily unavailable" with the profile still visible, and no
-  recovery test was saved.
-- **Data preservation proof is weak.** No real edit was made to the data
-  before migrating, so the comparison can't tell a transfer from a reseed.
-  Railway build and deploy logs from the first deploy weren't saved.
-- **The comparison re-run failed on 2026-10-25** with `OperationalError`. The
-  TCP proxy accepts connections, but the saved credentials didn't work. The
-  2026-10-13 comparison is the latest successful one.
+- **Database failure was verified only locally on SQLite**
+  ([db-failure-recovery](docs/evidence/db-failure-recovery.md)), not as a
+  PostgreSQL outage on Railway.
+- **No real data edit before migration.** The comparison can't tell a
+  transfer from a reseed. Railway build and deploy logs from the first
+  deploy weren't saved.
+- **The comparison re-run failed on 2026-10-25:** `password authentication
+  failed`. The Railway Postgres password changed after 2026-10-13, and the
+  local `.env` still has the old one. The 2026-10-13 comparison is the latest
+  successful one.
 - **The Railway Postgres TCP proxy is still open** (checked 2026-10-25). It
   should be removed, as the plan says.
 - **No reviewed change is documented yet** (requirement 5). See the submission index.

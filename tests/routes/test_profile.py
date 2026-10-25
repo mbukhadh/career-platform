@@ -1,60 +1,11 @@
-from datetime import date
-
 from fastapi.testclient import TestClient
 
-from app.domain.public_profile import (
-    PublicEducation,
-    PublicExperience,
-    PublicSkill,
-    PublicSkillGroup,
-    PublishedProfile,
-)
 from app.main import create_app
 
 
 def client():
     app = create_app()
-    app.state.profile_loader = lambda slug: (
-        PublishedProfile(
-            slug="mj-bukhadhour",
-            name="Mohammad (MJ) Bukhadhour",
-            headline="Engineer",
-            summary="Professional Summary",
-            location="Codespaces",
-            experiences=(
-                PublicExperience(
-                    employer="",
-                    title="Experience — coming soon",
-                    start_date=None,
-                    end_date=None,
-                    location=None,
-                    summary="",
-                    display_order=0,
-                ),
-            ),
-            education=(
-                PublicEducation(
-                    institution="Loyola Marymount University",
-                    program="B.S. Information Systems & Business Analytics",
-                    start_date=None,
-                    end_date=date(2027, 5, 31),
-                    details=None,
-                    display_order=0,
-                ),
-            ),
-            skill_groups=(
-                PublicSkillGroup(
-                    name="Programming & Data",
-                    display_order=0,
-                    skills=(
-                        PublicSkill(name="Python", display_order=0),
-                        PublicSkill(name="SQL", display_order=1),
-                    ),
-                ),
-            ),
-        ),
-        "database",
-    )
+    app.state.projects_loader = lambda slug: ()
     return TestClient(app)
 
 
@@ -76,9 +27,7 @@ def test_published_profile_renders_all_sections():
 
 
 def test_missing_profile_returns_not_found():
-    app = create_app()
-    app.state.profile_loader = lambda slug: (None, "database")
-    response = TestClient(app).get("/profiles/missing")
+    response = TestClient(create_app()).get("/profiles/missing")
     assert response.status_code == 404
 
 

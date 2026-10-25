@@ -1,22 +1,14 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from app.domain.public_profile import PublishedProfile
+from app.profile_content import PROFILE
 
 router = APIRouter()
 
 
-def _render(request: Request, profile: PublishedProfile, source: str) -> HTMLResponse:
-    return request.app.state.templates.TemplateResponse(
-        request=request,
-        name="profile.html",
-        context={"profile": profile, "profile_source": source},
-    )
-
-
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request) -> HTMLResponse:
-    return profile_page(request, "mj-bukhadhour")
+    return profile_page(request, PROFILE.slug)
 
 
 @router.get("/privacy", response_class=HTMLResponse)
@@ -28,19 +20,16 @@ def privacy(request: Request) -> HTMLResponse:
 
 @router.get("/profiles/{slug}", response_class=HTMLResponse)
 def profile_page(request: Request, slug: str) -> HTMLResponse:
-    loader = getattr(request.app.state, "profile_loader", lambda _: (None, "database"))
-    profile, source = loader(slug)
-    if profile is None:
-        template = (
-            "errors/service-unavailable.html"
-            if source == "snapshot-error"
-            else "errors/not-found.html"
+    templates = request.app.state.templates
+    if slug != PROFILE.slug:
+        return templates.TemplateResponse(
+            request=request, name="errors/not-found.html", context={}, status_code=404
         )
-        status_code = 503 if source == "snapshot-error" else 404
-        return request.app.state.templates.TemplateResponse(
-            request=request,
-            name=template,
-            context={},
-            status_code=status_code,
-        )
-    return _render(request, profile, source)
+    # None means the projects query failed: keep the profile, say so, return 503.
+    projects = request.app.state.projects_loader(slug)
+    return templates.TemplateResponse(
+        request=request,
+        name="profile.html",
+        context={"profile": PROFILE, "projects": projects},
+        status_code=200 if projects is not None else 503,
+    )

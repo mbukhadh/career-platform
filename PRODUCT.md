@@ -58,8 +58,9 @@ Confirmed by MJ:
 From the repository:
 
 - Sections with no published entries show a "No … published" line.
-- When the database is unavailable, the app serves the latest saved snapshot
-  of the profile.
+- The profile is kept in code. If the projects query fails, the page keeps
+  the profile, shows "Projects temporarily unavailable" and returns 503
+  (changed 2026-10-25; the saved-snapshot fallback was removed).
 - Email delivery for the contact form was not configured on the server as of
   October 6, 2026.
 
@@ -69,7 +70,7 @@ Undecided:
 
 ## Evidence on Hand
 
-Real content, all in the database (source: `app/seed.py`):
+Real content (profile in `app/profile_content.py`; projects in the database, seeded by `app/seed.py`):
 
 - Name, headline ("Information Systems & Business Analytics student at LMU"),
   location (Los Angeles, California), GitHub and LinkedIn links.

@@ -1,5 +1,3 @@
-from datetime import date
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,53 +14,67 @@ from app.models import (
     Skill,
     SkillGroup,
 )
+from app.profile_content import PROFILE
 
 
 def seed_database(session: Session) -> None:
-    profile = session.scalar(select(Profile).where(Profile.slug == "mj-bukhadhour"))
+    profile = session.scalar(select(Profile).where(Profile.slug == PROFILE.slug))
     if profile is not None:
         return
 
-    owner = Owner(name="Mohammad (MJ) Bukhadhour")
+    owner = Owner(name=PROFILE.name)
     profile = Profile(
         owner=owner,
-        slug="mj-bukhadhour",
-        name="Mohammad (MJ) Bukhadhour",
-        headline="Information Systems & Business Analytics student at LMU",
-        summary=(
-            "Senior at Loyola Marymount University studying Information Systems "
-            "and Business Analytics, graduating May 2027."
-        ),
-        location="Los Angeles, California",
-        github_url="https://github.com/mbukhadh",
-        linkedin_url="https://www.linkedin.com/in/mohammad-bukhadhour-ab7235391/",
+        slug=PROFILE.slug,
+        name=PROFILE.name,
+        headline=PROFILE.headline,
+        summary=PROFILE.summary,
+        location=PROFILE.location,
+        github_url=PROFILE.github_url,
+        linkedin_url=PROFILE.linkedin_url,
         is_published=True,
     )
-    experience = Experience(
-        profile=profile,
-        employer="",
-        title="Experience — coming soon",
-        start_date=None,
-        summary="",
-        display_order=0,
-        is_published=True,
-    )
-    profile.experiences = [experience]
-    profile.education = [
-        Education(
-            institution="Loyola Marymount University",
-            program="B.S. Information Systems & Business Analytics",
-            end_date=date(2027, 5, 31),
-            display_order=0,
+    profile.experiences = [
+        Experience(
+            employer=item.employer,
+            title=item.title,
+            start_date=item.start_date,
+            end_date=item.end_date,
+            location=item.location,
+            summary=item.summary,
+            display_order=item.display_order,
             is_published=True,
         )
+        for item in PROFILE.experiences
     ]
-    tools = SkillGroup(name="Programming & Data", display_order=0, is_published=True)
-    tools.skills = [
-        Skill(name="Python", display_order=0, is_published=True),
-        Skill(name="SQL", display_order=1, is_published=True),
+    profile.education = [
+        Education(
+            institution=item.institution,
+            program=item.program,
+            start_date=item.start_date,
+            end_date=item.end_date,
+            details=item.details,
+            display_order=item.display_order,
+            is_published=True,
+        )
+        for item in PROFILE.education
     ]
-    profile.skill_groups = [tools]
+    profile.skill_groups = [
+        SkillGroup(
+            name=group.name,
+            display_order=group.display_order,
+            is_published=True,
+            skills=[
+                Skill(
+                    name=skill.name,
+                    display_order=skill.display_order,
+                    is_published=True,
+                )
+                for skill in group.skills
+            ],
+        )
+        for group in PROFILE.skill_groups
+    ]
     profile.projects = [
         Project(
             name="Career Platform",
