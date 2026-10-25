@@ -207,3 +207,53 @@ not skip docs-only commits. Why `6dd6af4` and `14df95e` (2026-10-20) have no
 deployment record is still **unverified**. The commit that adds this section
 was pushed afterwards; its deployment was checked in the terminal and is
 not recorded here, because recording it would need another commit.
+
+## 6. Public database access and live site
+
+**What the dashboard shows (read by MJ):** 2026-10-25 about 16:41 PT
+(23:41 UTC). Railway › Postgres service › Settings › Networking shows "Add
+Public Access" and no `DATABASE_PUBLIC_URL`.
+
+**What this machine sees:** the old proxy address saved in the local `.env`
+as `RAILWAY_DATABASE_URL`, a `*.rlwy.net` host and port. Neither value is
+printed. No login was attempted and no data was read in these checks.
+
+```text
+2026-10-25 23:42:06 UTC
+DNS: resolves to 1 address
+TCP try 1: OPEN (connection accepted)
+TCP try 2: OPEN (connection accepted)
+TCP try 3: OPEN (connection accepted)
+
+2026-10-25 23:42:17 UTC
+sent PostgreSQL SSLRequest (8 bytes, no user, no password)
+reply byte: b'S'  -> a PostgreSQL server answered (accepts SSL)
+```
+
+Earlier the same day, at 23:13, 23:28 and 23:37 UTC, logins with the saved
+`.env` credentials reached a PostgreSQL server there and failed with
+`password authentication failed`.
+
+**Result:** these two observations conflict. The `.env` address still leads
+to a PostgreSQL server that accepts connections from the internet, one
+minute after the dashboard showed no public access on the service MJ checked.
+I did not change the record to "no proxy". Still to settle: which Railway
+service, environment or project owns that address.
+
+**Live site:**
+
+```text
+2026-10-25 23:42:34 UTC
+$ curl -s -o l.html -w "HTTP %{http_code}\n" https://mjbukhadhour.com/
+HTTP 200
+$ grep -oE '<h1>[^<]*</h1>|<h3>Career Platform</h3>|Projects source: database|Projects temporarily unavailable' l.html
+<h1>Mohammad (MJ) Bukhadhour</h1>
+<h3>Career Platform</h3>
+Projects source: database
+server: railway-hikari
+```
+
+The site is up and reads projects from its database.
+
+**Railway trial (read by MJ from the dashboard):** 2026-10-25 16:39 PT,
+"13 days or $4.28 left". That puts the end at about 2026-11-07.

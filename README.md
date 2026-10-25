@@ -259,8 +259,9 @@ in [checks §1](docs/evidence/project-1-checks-2026-10-25.md#1-domain-and-https-
 | DNS | Me (Cloudflare) | Me (Cloudflare) |
 
 PaaS still leaves me the code, secrets, schema migrations, data, DNS,
-costs, and noticing when something breaks. For example, Railway's Postgres
-TCP proxy is still open (see limitations).
+costs, and noticing when something breaks. For example, whether the
+database is reachable from the internet is my job to check, and that's
+unresolved right now (see limitations).
 
 ## Verified website update (requirement 5)
 
@@ -424,7 +425,7 @@ in commit `81403ba`. I still need to rewrite it in my own words.
 | Service | What's billable | Cost / credit | Expires or renews | Cleanup |
 | --- | --- | --- | --- | --- |
 | Azure for Students | VM `Standard_B2ats_v2` (compute, while running); 30 GB Standard SSD (E4) and a Standard public IP (billed even when deallocated) | Paid from student credit. Amount used and credit end date **unverified**: the CLI returns no cost, so check the portal | Credit end date **unverified** | Keep running until the instructor says. Then delete resource group `rg-career-platform` (VM, disk, IP, NIC, NSG, VNet, shutdown schedule) |
-| Railway | Web service and PostgreSQL usage | Trial: 30 days or $5 of usage, whichever comes first | **Trial end date unverified.** The first GitHub deployment record is 2026-10-13, and the sign-in window was Oct 3–7. Read the date from the Railway dashboard | Migrate to AWS before the trial ends. Remove the Postgres TCP proxy now. Delete the project after AWS is live |
+| Railway | Web service and PostgreSQL usage | Trial: 30 days or $5 of usage, whichever comes first. **2026-10-25 16:39 PT: "13 days or $4.28 left"** (read from the Railway dashboard by me) | Trial ends about **2026-11-07**, or sooner if the $4.28 runs out. The Free plan allows no custom domain, so `mjbukhadhour.com` stops working on Railway after that | **Migrate to AWS before 2026-11-07.** Settle whether a public database endpoint exists (see limitations). Delete the project after AWS is live |
 | Domain `mjbukhadhour.com` (Namecheap) | Registration | Price **unverified** | Registered 2026-10-01, expires **2027-10-01** (WHOIS) | Renew or let lapse after the course |
 | Cloudflare DNS | DNS, `www` redirect rule, edge certificate | Plan **unverified** in the dashboard (expected Free) | Edge cert valid to 2026-12-30, auto-renewed | Keep while the domain is used |
 | Zoho Mail | One mailbox | Plan **unverified** in the dashboard (expected Forever Free) | none known | Keep; remove MX/SPF/DKIM/DMARC if dropped |
@@ -439,12 +440,19 @@ in commit `81403ba`. I still need to rewrite it in my own words.
 - **No real data edit before migration.** The comparison can't tell a
   transfer from a reseed. Railway build and deploy logs from the first
   deploy weren't saved.
-- **The comparison re-run failed on 2026-10-25:** `password authentication
-  failed`. The Railway Postgres password changed after 2026-10-13, and the
-  local `.env` still has the old one. The 2026-10-13 comparison is the latest
-  successful one.
-- **The Railway Postgres TCP proxy is still open** (checked 2026-10-25). It
-  should be removed, as the plan says.
+- **The data comparison was not re-run.** The 2026-10-13 comparison is the
+  latest. On 2026-10-25 the saved credentials failed (`password
+  authentication failed`), and my Railway dashboard shows no public access on
+  the Postgres service, so I have no current public URL to compare against. I
+  chose not to re-run it.
+- **Public database access is unresolved.** On 2026-10-25 at about 16:41 PT, my
+  Railway dashboard (Postgres › Settings › Networking) showed "Add Public
+  Access" and no `DATABASE_PUBLIC_URL`. But at 16:42 PT, the old proxy
+  address saved in my local `.env` still accepted connections, and a
+  PostgreSQL server answered there
+  ([checks §6](docs/evidence/project-1-checks-2026-10-25.md#6-public-database-access-and-live-site)).
+  Next step: find which Railway service or project owns that address, and
+  remove its public access.
 - **The reviewed change was verified live only on the healthy path.** Its 503 path was tested locally, not against Railway.
 - **The before-MX email test isn't recorded** in [ex06](docs/evidence/ex06.md).
 - **Azure restart** evidence is a stop and start read from logs afterward,
@@ -452,5 +460,6 @@ in commit `81403ba`. I still need to rewrite it in my own words.
 - **The VM's certificate can't auto-renew** while DNS points at Railway.
 - **Email hardening:** DKIM is 1024-bit and DMARC is `p=none`, which reports
   but doesn't enforce.
-- The Railway trial end date, all costs, and the Cloudflare and Zoho plans are
+- **Railway trial ends about 2026-11-07**, and the AWS migration must happen
+  before then. Azure costs and the Cloudflare and Zoho plans are still
   **unverified** (see Costs).
