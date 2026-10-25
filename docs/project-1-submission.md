@@ -39,10 +39,11 @@ record; the plans it links to were written before the work.
 
 ## 5. Reviewed commit, Railway deployment, live change
 
-**Not done yet.** No commit has a recorded review together with a live check.
-Railway deployment records for every commit so far are in
-[checks §2](evidence/project-1-checks-2026-10-25.md#2-railway-deployments-from-github),
-and the recovery steps are in [README › Rollback](../README.md#rollback).
+- Commit [`10c43e3`](https://github.com/mbukhadh/career-platform/commit/10c43e3f3ebf077a41eb809541c5017497f72c15): keep the profile visible when the projects query fails. **Reviewed by me (MJ)** on 2026-10-25 from `git diff main...HEAD` before the merge (no GitHub pull request).
+- Local checks before merge: 34 tests passed, and the failure and recovery were reproduced locally ([`db-failure-recovery.md`](evidence/db-failure-recovery.md)).
+- Railway deployment `7320808074`, `success` at 2026-10-25 23:32:31 UTC.
+- Live check, 2026-10-25 23:32:46 UTC: `https://mjbukhadhour.com` returned 200, and the footer changed from `Profile source: database` to `Projects source: database`. Details in [README › Verified website update](../README.md#verified-website-update-requirement-5).
+- Recovery: [README › Rollback](../README.md#rollback), covering the revert for `10c43e3` (database impact: none).
 
 ## 6. Zoho email
 

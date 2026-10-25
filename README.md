@@ -262,6 +262,40 @@ PaaS still leaves me the code, secrets, schema migrations, data, DNS,
 costs, and noticing when something breaks. For example, Railway's Postgres
 TCP proxy is still open (see limitations).
 
+## Verified website update (requirement 5)
+
+| | |
+| --- | --- |
+| Change | Keep the profile visible when the projects query fails ("Projects temporarily unavailable", 503); remove the snapshot fallback |
+| Commit | [`10c43e3`](https://github.com/mbukhadh/career-platform/commit/10c43e3f3ebf077a41eb809541c5017497f72c15), branch `feat/projects-unavailable`, fast-forwarded into `main` |
+| Review | **Reviewed by me (MJ)** on 2026-10-25: I read `git diff main...HEAD` on the branch and approved it before the merge. Approval was given in my Claude Code session; there is no GitHub pull request |
+| Local verification before merge | `uv run pytest -q`: 34 passed; `ruff check` clean; failure and recovery reproduced in one process ([db-failure-recovery](docs/evidence/db-failure-recovery.md)) |
+| Pushed | 2026-10-25 23:31:54 UTC |
+| Railway deployment | ID `7320808074`, environment `wholesome-solace / production`: `in_progress` 23:31:57 UTC, `success` 23:32:31 UTC (GitHub deployments API) |
+| Live check | 2026-10-25 23:32:46 UTC, below |
+
+```text
+$ curl -s -o live.html -w "HTTP %{http_code}\n" https://mjbukhadhour.com/
+HTTP 200
+$ grep -oE '<h1>[^<]*</h1>|<h3>Career Platform</h3>|Projects source: database|Profile source: [a-z]+' live.html
+<h1>Mohammad (MJ) Bukhadhour</h1>
+<h3>Career Platform</h3>
+Projects source: database
+$ curl -sI https://mjbukhadhour.com/ | grep -i server
+server: railway-hikari
+$ curl -s https://mjbukhadhour.com/healthz
+{"status":"ok"}
+$ curl -s -o /dev/null -w "%{http_code}\n" https://mjbukhadhour.com/profiles/missing
+404
+```
+
+What changed at the domain: before the deploy (2026-10-25 23:11 UTC,
+[checks §1](docs/evidence/project-1-checks-2026-10-25.md#live-page-reads-the-database))
+the footer read `Profile source: database`. After the deploy it reads
+`Projects source: database`, and the project still loads from Railway
+PostgreSQL with 200. The failure path (503) was verified locally only. I
+didn't stop Railway's database to show it live.
+
 ## Rollback
 
 ### Application code
@@ -272,6 +306,16 @@ TCP proxy is still open (see limitations).
 2. Then fix history: `git revert <bad sha>`, run the tests, and push. Railway
    deploys the revert, so Git and the live site agree again.
 3. Check `https://mjbukhadhour.com/healthz` and the page.
+
+**For the reviewed change `10c43e3`:** to undo it, run `git revert 10c43e3`,
+then `uv run pytest -q`, then push to `main`. Or redeploy the previous
+deployment in Railway (commit `53fcead`). Then check that the footer reads
+`Profile source: database` again.
+- **Database impact: none.** The change has no migration and doesn't write
+  to the database. The profile tables are still in the schema and still hold
+  their rows, so the old code reads them again as soon as it's back.
+- The revert brings back the snapshot fallback and the full-page 503, so
+  requirement 1 would be unmet again.
 
 ### Database
 
@@ -401,7 +445,7 @@ in commit `81403ba`. I still need to rewrite it in my own words.
   successful one.
 - **The Railway Postgres TCP proxy is still open** (checked 2026-10-25). It
   should be removed, as the plan says.
-- **No reviewed change is documented yet** (requirement 5). See the submission index.
+- **The reviewed change was verified live only on the healthy path.** Its 503 path was tested locally, not against Railway.
 - **The before-MX email test isn't recorded** in [ex06](docs/evidence/ex06.md).
 - **Azure restart** evidence is a stop and start read from logs afterward,
   not a planned reboot test with an outside check.
