@@ -1,8 +1,8 @@
 # Project 1 checks, 2026-10-25
 
 Checks run on 2026-10-25 between 23:05 and 23:12 UTC from my laptop, with Claude
-Code running the commands. These were run after the submission deadline to
-replace or confirm evidence that wasn't saved at the time. The Azure restart
+Code running the commands. These were run before the extended deadline
+(the instructor extended it to 2026-10-26, per my report) to replace or confirm evidence that wasn't saved at the time. The Azure restart
 in section 3 happened on 2026-10-06; it is read **retrospectively** from the
 VM's own logs. Nothing on the VM, Railway or Cloudflare was changed by these checks.
 
