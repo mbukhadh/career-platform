@@ -236,11 +236,32 @@ Work on `main`, one commit per task, tests green before each commit.
 
 ## 3. Deploy on Railway — MJ, in the dashboard
 
-- [ ] **Railway: confirm section 2 of the guide is done** (Postgres online,
+> **Results for sections 3–5 were filled in retrospectively on 2026-10-25**
+> from saved evidence and re-run checks. The steps below were written on
+> 2026-10-08, before the work. A box is ticked only where there is proof.
+> Proof sources: [data comparison](../../evidence/railway-data-comparison.md)
+> (commit `8550408`), [dns-after-zoho](../../evidence/dns-after-zoho.md), and
+> [checks of 2026-10-25](../../evidence/project-1-checks-2026-10-25.md).
+
+- [x] **Railway: confirm section 2 of the guide is done** (Postgres online,
   TCP Proxy on, `RAILWAY_DATABASE_URL` in the local `.env`, web service added
   with `DATABASE_URL` pointing at Postgres).
-- [ ] **Railway: click Deploy, then Generate Domain.**
-- [ ] **What to look for:**
+  - Result (retrospective): the comparison committed on 2026-10-13 in
+    `8550408` reads Railway rows through `RAILWAY_DATABASE_URL`, so Postgres
+    and the TCP proxy were up by then. On 2026-10-25 the local `.env` holds
+    only `RAILWAY_DATABASE_URL`, its host is a Railway proxy host, and the
+    port accepts TCP connections. The web service's `DATABASE_URL` setting
+    itself was not recorded.
+- [x] **Railway: click Deploy, then Generate Domain.**
+  - Result (retrospective): GitHub's deployment records show Railway
+    environment `wholesome-solace / production` deploying `main`, the
+    earliest on 2026-10-13 17:44 UTC (`034c890`). The generated
+    `*.up.railway.app` domain was not recorded. Deploy is proven; Generate
+    Domain is **unverified**.
+- [ ] **What to look for:** **unverified**. No build or deploy log, and no
+  check of the generated domain before the transfer, was saved. The
+  pre-deploy `alembic upgrade head` is in `railway.json`; that it ran is
+  inferred from the tables existing for the transfer.
 
 | Look at | Expected | If not |
 | --- | --- | --- |
@@ -252,7 +273,9 @@ Work on `main`, one commit per task, tests green before each commit.
 
 ## 4. Move the rows
 
-- [ ] **Transfer**
+- [ ] **Transfer**: the transfer's own output was not saved. Railway holds
+  rows equal to the backup (see Compare), so the rows got there, but the
+  run itself is **unverified**.
   - Where: laptop
   - What: `uv run python -m app.transfer --source ~/career-platform-backups/career_platform-2026-10-08.db`
   - Why: the rows on the VM are the site's content. They are copied, not
@@ -263,33 +286,72 @@ Work on `main`, one commit per task, tests green before each commit.
     To redo after a success, MJ empties the tables in Railway.
   - If it times out on campus Wi-Fi: rerun from a phone hotspot.
 
-- [ ] **Compare**
+- [x] **Compare**
+  - Result (2026-10-13, commit `8550408`): all 9 tables have equal counts
+    and matching row hashes (owners 1, profiles 1, contact_configurations 1,
+    education 1, experiences 1, projects 1, skill_groups 1,
+    experience_accomplishments 0, skills 2), matching the section 1 backup.
+    [`railway-data-comparison.md`](../../evidence/railway-data-comparison.md)
+    has no host, user, password or URL.
+  - Caveat: the source was seed content, and no real edit was made before the
+    transfer, so the comparison can't tell a transfer from a reseed.
+  - Re-run 2026-10-25 23:13 UTC: `--compare` failed with
+    `Database error: OperationalError` (the saved credentials no longer
+    connect). Not repeated.
   - Where: laptop
   - What: the same command with `--compare --write docs/evidence/railway-data-comparison.md`
   - Check: every table shows equal counts and a content match. The saved
     file contains no host, user, password, or URL.
 
-- [ ] **Read the page** at the Railway domain: MJ's name, headline,
+- [x] **Read the page** at the Railway domain: MJ's name, headline,
   education, project, and the two skills, and the footer says
   "Profile source: database".
+  - Result (2026-10-25, at `https://mjbukhadhour.com`, which is served by
+    Railway, not at the generated domain): the page shows the profile, the
+    Career Platform project, Python and SQL, and `Profile source: database`.
+    No pre-cutover read at the generated domain was saved.
 
 ## 5. Domain — MJ, by hand
 
 The agent does not touch Railway or Cloudflare here.
 
-- [ ] **Before changing anything:** the current `@` record is an **A record
+- [x] **Before changing anything:** the current `@` record is an **A record
   at `135.232.198.204`**. Write it down; it's the rollback.
-- [ ] **Railway:** Custom Domain, `mjbukhadhour.com` only.
-- [ ] **Cloudflare:** change `@` from the A record to a CNAME at Railway's
+  - Result: recorded 2026-10-13 22:06 UTC in
+    [dns-after-zoho](../../evidence/dns-after-zoho.md): `@` A `135.232.198.204`.
+- [x] **Railway:** Custom Domain, `mjbukhadhour.com` only.
+  - Result (checked 2026-10-25): `_railway-verify.mjbukhadhour.com` TXT is
+    present, and Railway serves `mjbukhadhour.com` with its own Let's Encrypt
+    certificate, issued 2026-10-15 21:29 UTC. `www` is not on Railway; it
+    is a Cloudflare redirect.
+- [x] **Cloudflare:** change `@` from the A record to a CNAME at Railway's
   target, DNS only (grey cloud). Add Railway's TXT record. Leave `www` and
   every other record alone. Note the time.
-- [ ] **Check:** `https://mjbukhadhour.com` shows a valid certificate for the
+  - Result (checked 2026-10-25): `@` resolves to `69.46.46.119` (WHOIS
+    OrgName: Railway), and responses carry `server: railway-hikari`, not
+    Cloudflare, so the record is DNS only. The CNAME itself is flattened and
+    can't be seen in public DNS. The TXT record is present. **The time of the
+    change was not noted.** It was after 2026-10-13 22:06 UTC (still the VM
+    then) and probably close to the certificate issue time, 2026-10-15
+    21:29 UTC. `www` was later changed to a proxied record with a redirect
+    rule, as the Zoho guide asks.
+- [x] **Check:** `https://mjbukhadhour.com` shows a valid certificate for the
   domain and MJ's data. Pending DNS or TLS is pending, not done.
+  - Result (2026-10-25 23:11 UTC): `200`, `/healthz` `{"status":"ok"}`, cert
+    `CN=mjbukhadhour.com` from Let's Encrypt YR2, valid until 2027-01-13;
+    `http://www` and `https://www` both 301 to `https://mjbukhadhour.com/`.
+    Earlier dated evidence of the site on Railway: GA4 checks on 2026-10-15
+    ([ex06](../../evidence/ex06.md)). Outage 2026-10-16 to 2026-10-20 from
+    the domain suspension (registrar, not Railway).
 
 ## 6. After cutover (separate steps, not part of this plan's code)
 
 Cloudflare and Railway CLIs, the test skill, the push-to-deploy proof, the
 README, `docs/project-1-submission.md`, and removing the TCP Proxy.
+
+Status 2026-10-25: the README and submission index are written. The TCP
+proxy is **still open**. The push-to-deploy proof (a reviewed change) is
+**not yet documented**. Neither CLI is installed.
 
 ## Rollback for the whole plan
 
