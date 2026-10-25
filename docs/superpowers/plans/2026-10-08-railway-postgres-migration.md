@@ -350,8 +350,9 @@ Cloudflare and Railway CLIs, the test skill, the push-to-deploy proof, the
 README, `docs/project-1-submission.md`, and removing the TCP Proxy.
 
 Status 2026-10-25: the README and submission index are written. The TCP
-proxy is **still open**. The push-to-deploy proof (a reviewed change) is
-**not yet documented**. Neither CLI is installed.
+proxy is **still open**. The push-to-deploy proof is the reviewed change
+`10c43e3`, Railway deployment `7320808074` (2026-10-25); see the README's
+"Verified website update". Neither CLI is installed.
 
 ## Rollback for the whole plan
 
