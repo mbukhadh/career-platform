@@ -87,13 +87,13 @@ Railway and the behaviour at https://mjbukhadhour.com. Railway's deployment
 history is mirrored on GitHub
 (`https://api.github.com/repos/mbukhadh/career-platform/deployments`).
 
-**Docs-only commits:** Railway has deployed docs-only commits before
-(`034c890`, `8550408`, `81403ba`; see
-[checks §2](docs/evidence/project-1-checks-2026-10-25.md#2-railway-deployments-from-github)),
-but no deployment exists for `6dd6af4` and `14df95e` (2026-10-20). The cause is
-**unverified**: no watch-path setting is in `railway.json`, and I can't read
-Railway's settings from here. The final push result is recorded in
-[checks §5](docs/evidence/project-1-checks-2026-10-25.md#5-final-push-and-railway-deployment).
+**Docs-only commits are deployed too.** There are no watch paths in
+`railway.json`, so every push to `main` redeploys, docs included: `034c890`,
+`8550408`, `81403ba`, and on 2026-10-25 `8281f58`, which deployed with
+success 52 seconds after the push
+([checks §2 and §5](docs/evidence/project-1-checks-2026-10-25.md#5-final-push-and-railway-deployment)).
+One exception: `6dd6af4` and `14df95e` (2026-10-20) have no deployment record.
+The cause is **unverified**, and the commits after them deployed normally.
 
 ### Azure VM (previous host)
 

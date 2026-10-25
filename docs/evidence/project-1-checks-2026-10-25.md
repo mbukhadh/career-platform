@@ -188,4 +188,22 @@ does not implement yet.
 
 ## 5. Final push and Railway deployment
 
-Pending: filled in after the push.
+Pushed `8281f58` (docs only) to `main` at 2026-10-25 23:17:00 UTC.
+
+```text
+$ curl -s "https://api.github.com/repos/mbukhadh/career-platform/deployments?sha=8281f58b167a490bbe61a364f878b13bd1524d96"
+id 7320646074, environment "wholesome-solace / production", created 2026-10-25T23:17:04Z
+$ curl -s https://api.github.com/repos/mbukhadh/career-platform/deployments/7320646074/statuses
+in_progress 2026-10-25T23:17:04Z
+success     2026-10-25T23:17:56Z
+$ curl -s -o /dev/null -w "%{http_code}\n" https://mjbukhadhour.com/    # 23:18 UTC
+200
+$ curl -s https://mjbukhadhour.com/healthz
+{"status":"ok"}
+```
+
+Railway deployed a docs-only commit 4 seconds after the push, so it does
+not skip docs-only commits. Why `6dd6af4` and `14df95e` (2026-10-20) have no
+deployment record is still **unverified**. The commit that adds this section
+was pushed afterwards; its deployment was checked in the terminal and is
+not recorded here, because recording it would need another commit.
