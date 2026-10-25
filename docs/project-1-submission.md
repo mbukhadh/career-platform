@@ -4,7 +4,7 @@
 | --- | --- |
 | Repository | https://github.com/mbukhadh/career-platform |
 | Live site | https://mjbukhadhour.com |
-| Final commit | The newest commit on `main` (`git rev-parse origin/main`), entered in Brightspace. It is the commit right after `978ed493477d8252e271a8bc83cf4b7603746190` (last content commit) and only updates this line. A file can't contain its own commit's SHA. |
+| Final commit | The newest commit on `main` (`git rev-parse origin/main`), entered in Brightspace. It is the commit right after `7c272ec128e7fe4127e09e473deda02926089a09` (last content commit) and only updates this line. A file can't contain its own commit's SHA. |
 
 Updated 2026-10-25, after the deadline. Items marked **unverified** or
 **not done** have no proof yet. The [README](../README.md) is a retrospective
