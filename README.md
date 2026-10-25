@@ -364,13 +364,9 @@ From the [migration spec](docs/superpowers/specs/2026-10-08-railway-postgres-mig
 
 ### 2. Managed (Zoho) vs self-hosted email (retrospective)
 
-My in-class write-up isn't in this repo, so this is a retrospective summary
-for me to check. A self-hosted mail server on the VM would need port 25
-(which Azure blocks for outbound mail by default), its own spam filtering, IP
-reputation, TLS, and backups. A mistake there means lost or rejected mail.
-Zoho's free plan gives me a mailbox at my domain, and I only publish DNS
-records (MX, SPF, DKIM, DMARC). The cost is less control and depending on a
-provider's free-plan terms.
+_Drafted with AI assistance (Claude), reviewed and edited by me on 2026-10-25._
+
+I chose Zoho Mail (managed) over running my own mail server. Self-hosting means I would own the mail server software, its patching, spam reputation, and deliverability, and a misconfigured server can get my domain blocked. Zoho handles all of that; I only configure MX, SPF, DKIM, and DMARC in Cloudflare and verify the results. The trade-off is less control and dependence on Zoho’s free plan, which was acceptable for a resume address.
 
 ## Investigated failures
 
@@ -402,23 +398,9 @@ registrant email, and recovery was confirmed on 2026-10-20. See the note in
 
 ## Reflection
 
-Assembled on 2026-10-25 from what I wrote in
-[ex03 §4](docs/evidence/ex03.md#4-the-change),
-[ex05 §5](docs/evidence/ex05.md#5-what-you-learned), and the Ex06 reflection
-in commit `81403ba`. I still need to rewrite it in my own words.
+_Drafted with AI assistance (Claude), reviewed and edited by me on 2026-10-25._
 
-- I understand the request path much better now. DNS failures and certificate
-  failures can look the same in curl, and `openssl s_client -servername`
-  against the intended IP tells them apart.
-- A 200 response doesn't prove the database works, and matching row counts
-  don't prove the data moved. Hashes and one real data change do.
-- On a platform, I still own the data, secrets and DNS. Railway took away
-  nginx, certbot and OS patches, not the responsibility.
-- What I'd change: save command output as I go instead of rebuilding it
-  afterward; make a real data edit before migrating; take the backup *before*
-  any copy step (the ex03 slip); test the database-failure behaviour from
-  the start, not at the end; and never put API keys where a
-  screenshot can catch them (from the Ex06 reflection).
+Doing this project showed me the difference between code working and a system being proven. The site ran on Azure and then Railway, but I could only claim things I had evidence for: the restart came from VM logs rather than a planned test, and the data comparison didn’t prove a transfer because I never edited the data before migrating. I now understand that PaaS removes the OS, runtime, and TLS work, but I still own the code, the secrets, the database data, DNS, and cleanup. The Railway Postgres proxy showed this: the dashboard said no public access while the address still answered, and I couldn’t resolve it. The reviewed change taught me that a requirement (“profile stays visible, projects fail with 503”) can mean redesigning the app, not just catching an error: the profile moved into code, and a SQLite connection-pool bug only appeared once I reproduced the failure myself. Next time I would edit the real data before migrating, run a planned reboot test on Azure, and keep evidence as I go instead of reconstructing it later.
 
 ## Costs, credits, expiration and cleanup
 
