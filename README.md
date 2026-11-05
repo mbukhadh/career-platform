@@ -4,9 +4,13 @@ My personal resume site, and the start of the career platform I'll build
 this semester. It's a FastAPI app with Jinja templates and plain CSS that reads
 my profile and projects from a database on every request.
 
-**Live:** https://mjbukhadhour.com (Railway + PostgreSQL). `www` redirects to it.
-**Earlier host, still running:** Azure VM `vm-career-platform` (SQLite), kept as
-the rollback target until the instructor's cleanup directions.
+**Live:** https://mjbukhadhour.com on **AWS** (EC2 + Single-AZ RDS PostgreSQL)
+since 2026-11-05 about 23:07 UTC. `www` redirects to it. The full migration
+record is [`docs/aws-migration.md`](docs/aws-migration.md).
+**Previous host, still running:** Railway + PostgreSQL, the rollback target
+until its trial ends around 2026-11-07.
+**Earlier host:** Azure VM `vm-career-platform` (SQLite), until the instructor's
+cleanup directions.
 
 Project 1 submission index: [`docs/project-1-submission.md`](docs/project-1-submission.md).
 
@@ -16,6 +20,12 @@ Project 1 submission index: [`docs/project-1-submission.md`](docs/project-1-subm
 > change. Claims link to the file, commit or check that supports them. Anything
 > without proof is marked **unverified**. Today's re-run checks are in
 > [`docs/evidence/project-1-checks-2026-10-25.md`](docs/evidence/project-1-checks-2026-10-25.md).
+>
+> **Update 2026-11-05 (AWS migration).** The AWS sections below (set up,
+> architecture, migration, rollback, decision 3, costs, limitations) were added
+> on 2026-11-05 from [`docs/aws-migration.md`](docs/aws-migration.md), which
+> was written step by step during the migration. Sections about Railway and
+> Azure describe those hosts as they were.
 
 ## What the site does
 
@@ -70,9 +80,34 @@ Set `RESEND_API_KEY`,
 `CONTACT_FROM` and `CONTACT_TO` in `.env` only when testing contact delivery.
 Never commit `.env`, SQLite files, backups, or provider credentials.
 
-### Railway (live)
+### AWS (live)
 
-Railway deploys `main` from GitHub automatically.
+EC2 `i-04af2fcbbe7761894` (t3.small, Ubuntu 26.04, Elastic IP `3.93.103.230`)
+runs the app as the non-root user `career` from `/srv/career-platform`, under
+systemd ([`deploy/career-platform.service`](deploy/career-platform.service)),
+behind Nginx ([`deploy/nginx-career-platform.conf`](deploy/nginx-career-platform.conf)).
+The only setting is `DATABASE_URL`, pointing at RDS `career-platform-db`. It
+lives in `/etc/career-platform/env` (root, mode 600) and never in Git.
+
+**There's no automatic deploy.** Pushing to `main` doesn't change AWS. To deploy
+a reviewed commit:
+
+```bash
+ssh -i ~/.ssh/career-platform-ec2 ubuntu@3.93.103.230
+cd /srv/career-platform
+sudo -u career git fetch && sudo -u career git checkout <reviewed-sha>
+sudo -u career env HOME=/srv/career-platform uv sync --frozen --no-dev
+sudo sh -c 'set -a; . /etc/career-platform/env; set +a; exec sudo -u career --preserve-env=DATABASE_URL .venv/bin/alembic upgrade head'
+sudo systemctl restart career-platform && curl -s http://127.0.0.1:8000/healthz
+```
+
+Then check https://mjbukhadhour.com. SSH only accepts my current IP. If my IP
+changes, update the port 22 rule in security group `career-platform-web`.
+
+### Railway (previous host, rollback until about 2026-11-07)
+
+Railway deploys `main` from GitHub automatically, so pushing to `main`
+still redeploys Railway, docs included, while the project exists.
 [`railway.json`](railway.json) holds the deploy config:
 
 - pre-deploy: `alembic upgrade head`. It creates or upgrades the schema, and a failed migration fails the deploy.
@@ -118,7 +153,89 @@ The request path from a laptop to each host, with ports, NAT and DNS, is in
 [Azure PNG](docs/images/request-path-azure.png)). The summary below adds the
 email and analytics paths.
 
-### Railway (current)
+### AWS (current, since 2026-11-05)
+
+Checked against the live deployment on 2026-11-05 (evidence:
+[`docs/aws-migration.md` §9](docs/aws-migration.md#9-architecture-diagram-2026-11-05)).
+Dashed arrows are background, admin, standby or unfinished paths, and solid
+arrows are the request path.
+
+```mermaid
+flowchart LR
+  B["Visitor browser"]
+  L["My laptop (admin)"]
+  CFD["Cloudflare DNS, authoritative<br/>@ and aws: A 3.93.103.230, DNS only<br/>www: proxied"]
+  CFE["Cloudflare edge, www only<br/>TLS ends here for www<br/>301 to https://mjbukhadhour.com"]
+  GH["GitHub main"]
+  subgraph ACC["AWS account, us-east-1"]
+    IAM["Console / CLI as IAM user isba-student"]
+    subgraph VPC["Default VPC 172.31.0.0/16"]
+      subgraph SGW["SG career-platform-web: in 22 from my /32, 80 and 443 from any"]
+        EIP["Elastic IP 3.93.103.230"]
+        subgraph EC2["EC2 t3.small, Ubuntu 26.04, us-east-1a<br/>EBS 16 GiB encrypted: code, env file, certs"]
+          X["nginx :80 → 301 to https<br/>:443 TLS ends here (Let's Encrypt)"]
+          U["Uvicorn, 2 workers, user career<br/>127.0.0.1:8000, systemd"]
+        end
+      end
+      subgraph SGD["SG career-platform-db: in 5432 only from web SG"]
+        R[("RDS PostgreSQL 18.6, Single-AZ<br/>encrypted, not public<br/>DATA LIVES HERE")]
+      end
+    end
+    SN[("RDS automated backups, 1 day<br/>+ snapshot pre-cutover")]
+  end
+  BK[("pg_dump files: Mac + OneDrive")]
+  RW["Railway, standby, no traffic<br/>rollback until ~2026-11-07"]
+  RS["Resend API<br/>UNFINISHED: no key, sends fail"]
+  GA["Google Tag Manager / GA4"]
+
+  B -- "1 DNS, 53" --> CFD
+  B -- "2 HTTPS 443 / HTTP 80" --> EIP --> X
+  B -. "www, HTTPS 443" .-> CFE
+  X -- "3 HTTP over loopback :8000" --> U
+  U -- "4 SQL over TLS, 5432, private IP" --> R
+  R -.-> SN
+  R -. "weekly pg_dump via EC2 + SSH" .-> BK
+  L -- "SSH 22, key only" --> EIP
+  L -- "HTTPS 443" --> IAM
+  EC2 -. "git fetch, manual deploy" .-> GH
+  GH -. "push auto-deploys" .-> RW
+  U -. "contact form, HTTPS 443" .-> RS
+  B -. "after Accept, HTTPS 443" .-> GA
+```
+
+**How to read it.**
+
+1. **Finding the server.** A visitor's browser asks Cloudflare's DNS where
+   `mjbukhadhour.com` is. The apex record is **DNS only** (gray cloud), so
+   Cloudflare just answers with the Elastic IP, and the browser then connects
+   **straight to AWS**. Cloudflare isn't in that path.
+2. **HTTPS.** The connection passes the web security group, which allows
+   only 80 and 443 from anyone and 22 from my IP. **nginx on EC2 is where
+   HTTPS ends**, using a Let's Encrypt certificate that `certbot.timer` renews.
+   Plain HTTP on port 80 only gets a 301 redirect to https.
+3. **The app.** nginx passes the request over the loopback address to
+   Uvicorn on `127.0.0.1:8000`. That port can't be reached from outside.
+   Uvicorn runs as the non-root user `career` under systemd.
+4. **The data.** The app reads RDS over TLS on port 5432 at a private IP. The
+   database security group only accepts the web security group, and RDS isn't
+   publicly accessible. **The data lives in RDS.** The EC2 disk holds only the
+   code, the env file with `DATABASE_URL`, and the certificates.
+
+- **`www` is different.** It's **proxied** (orange cloud), so browsers connect
+  to Cloudflare's edge. TLS ends there, with Cloudflare's own certificate, and
+  Cloudflare answers with a 301 to the apex. It never reaches AWS.
+- **Backups:** RDS keeps automated backups for only 1 day (a Free plan limit),
+  plus a manual pre-cutover snapshot. The weekly `pg_dump` copies on my Mac
+  and OneDrive are the main safety net.
+- **Admin access:** SSH with a key from my laptop only, and the AWS console
+  or CLI as the course IAM user. Deploys are manual: EC2 fetches a reviewed
+  commit from GitHub.
+- **Railway is standby.** It got no outside requests after the DNS change
+  (23:07 UTC), but pushes to `main` still deploy to it until it's deleted.
+- **Unfinished:** the contact form has no Resend key, so sending fails on the
+  server before any request leaves it, the same as on Railway.
+
+### Railway (previous, rollback until about 2026-11-07)
 
 ```mermaid
 flowchart LR
@@ -164,7 +281,7 @@ flowchart LR
 Public IP `135.232.198.204`, private IP `172.16.0.4`. Rules as of 2026-10-25
 are in [checks §3](docs/evidence/project-1-checks-2026-10-25.md#3-azure-vm).
 
-### Email (Zoho, same for both hosts)
+### Email (Zoho, same for every host)
 
 ```mermaid
 flowchart LR
@@ -180,7 +297,9 @@ flowchart LR
   G -. "5 checks SPF, DKIM, DMARC in DNS" .-> DNS
 ```
 
-Mail never touches Railway or Azure. Only DNS ties the two together.
+Mail never touches AWS, Railway or Azure. Only DNS ties them together. The
+AWS cutover changed only the apex record, and MX, SPF, DKIM and DMARC are
+unchanged (checked against the Cloudflare zone export on 2026-11-05).
 
 ### Analytics (GA4)
 
@@ -263,6 +382,74 @@ costs, and noticing when something breaks. For example, whether the
 database is reachable from the internet is my job to check, and that's
 unresolved right now (see limitations).
 
+## Migration: Railway to AWS (2026-11-05)
+
+The full record, with commands, checks and evidence, is
+[`docs/aws-migration.md`](docs/aws-migration.md). It was written step by step
+and follows the course guide.
+
+| Step | What happened | Evidence |
+| --- | --- | --- |
+| Plan and cost | EC2 + Single-AZ RDS, estimated about $34 a month against $120 in credits that expire Apr 29, 2027 | §1, §5 |
+| Backup | `pg_dump` through `railway connect Postgres --tunnel-only`. Restored locally and compared table by table. Copies on the Mac and OneDrive | §2 |
+| Build | EC2 with IMDSv2, encrypted gp3 and Standard credits. RDS 18.6, private, encrypted. Each resource was created once, after console review | §5 |
+| Deploy | Nginx → Uvicorn (non-root, systemd) → RDS over TLS. Restored the Nov 3 dump from EC2, and all 10 tables matched | §6 |
+| Test | `aws.mjbukhadhour.com` with Let's Encrypt. Pages byte-identical to Railway. A test record survived an app restart and a reboot. Renewal dry-run. SSH and RDS restrictions verified | §7 |
+| Cutover | Elastic IP. Apex certificate by DNS-01 before the move. Edit freeze, final dump (identical data), pre-cutover RDS snapshot, restore. The apex **CNAME to Railway was replaced by an A record** to `3.93.103.230`. Automatic renewal set up afterwards | §8 |
+
+**How the data was kept:**
+
+1. The final Railway dump (`railway-20261105T225854Z.dump`, SHA-256
+   `b801a7ff…7137706a`) was restored into an empty RDS database from EC2.
+2. An MD5 of every table on RDS matched a local restore of the same dump.
+3. The app has no write path, so an edit freeze was enough to stop competing
+   writes.
+4. Production pages on AWS were byte-identical to Railway after the switch.
+
+**Deviation:** the AWS Free plan only allows **1 day** of RDS automated
+backups (7 was refused). Weekly `pg_dump` copies outside AWS are the main
+safety net.
+
+### Next step (AWS)
+
+In order:
+
+1. **Lift the edit freeze.** Content edits have been frozen since the final
+   Railway dump (2026-11-05 22:58 UTC). Once I accept the verification in
+   [`docs/aws-migration.md`](docs/aws-migration.md) §8 and §9, edit content
+   only on AWS (RDS). Take a `pg_dump` before any edit.
+2. **Check actual costs.** In Billing → Bills, Cost Explorer and Credits
+   (from 2026-11-06, since charges show up about a day late), compare against
+   the estimate of about $34 a month and the $120 credits. My IAM user can't
+   read billing, so this is done in the console.
+3. **Delete the `_acme-challenge` TXT record** in Cloudflare. It was only
+   needed for the DNS-01 certificate before cutover. Renewal now uses HTTP-01
+   through Nginx.
+4. **Remove the Railway SSH key** `mac-railway-cli`:
+   `railway ssh keys remove SHA256:U4JoTMMo6ysQLTtioyjtYF9NAyWGrgIfB8cBOOzmhe0`
+   (add `--2fa-code <code>` if asked). After this, the Railway tunnel stops
+   working.
+5. **Delete the Railway project before about 2026-11-07,** when the trial
+   ends. Do it only after keeping backups: the final Railway dump
+   `railway-20261105T225854Z.dump` and the RDS dump
+   `rds-20261105T231452Z.dump` are on the Mac and OneDrive with checksums.
+   Rollback to Railway ends at that point, and so does the old public
+   database address (see limitations).
+6. **Course-end cleanup**, to stop all AWS charges:
+   1. Take a fresh `pg_dump` and keep it outside AWS.
+   2. Turn off RDS deletion protection, then delete `career-platform-db`
+      **with a final snapshot**. Don't just stop it: a stopped RDS instance
+      restarts itself after 7 days.
+   3. Terminate EC2 `i-04af2fcbbe7761894`. Its encrypted volume is deleted
+      with it.
+   4. Release Elastic IP `3.93.103.230` (`eipalloc-0aaa3c6cdf86082df`). It
+      bills even when not attached.
+   5. Delete the security groups `career-platform-db` and
+      `career-platform-web`, the DB subnet group and the key pair. Decide
+      whether to keep the snapshots.
+   6. Point or remove the `@` and `aws` DNS records.
+   7. Run `aws logout --profile isba-4775`.
+
 ## Verified website update (requirement 5)
 
 | | |
@@ -335,6 +522,27 @@ deployment in Railway (commit `53fcead`). Then check that the footer reads
 - Code and data roll back together when a migration is involved. Restore the
   data or downgrade first, then redeploy the matching code.
 
+### Whole site back to Railway (until about 2026-11-07)
+
+1. **Before any content edit on AWS:** in Cloudflare, replace the apex A
+   record with `CNAME @ → eub1ntkd.up.railway.app`, DNS only. That's the exact
+   line in the saved zone export
+   (`~/Backups/career-platform/cloudflare-zone-mjbukhadhour.com-20261105.txt`).
+2. Wait out the TTL (up to 5 minutes), then check that `server:
+   railway-hikari` answers. Railway still has identical data.
+3. **After edits on AWS:** first take a `pg_dump` of RDS from EC2, restore it
+   into Railway through the tunnel, and compare the tables. Then switch DNS.
+4. After the Railway trial ends, this path is gone. The AWS undo points are
+   the RDS snapshot `career-platform-db-pre-cutover` and the `pg_dump` files.
+
+### AWS data
+
+- **Undo the restore:** restore RDS from snapshot `career-platform-db-pre-cutover`,
+  or restore a `pg_dump` from EC2 (`pg_restore --no-owner --no-privileges`).
+- **Weekly backup** (from the Mac, prints no secrets): see
+  [`docs/aws-migration.md` §8](docs/aws-migration.md#deviation-rds-automated-backups-are-1-day-not-7).
+  RDS automated backups keep only 1 day.
+
 ### Whole site back to Azure
 
 1. In Cloudflare, set `@` back to an A record at `135.232.198.204`, DNS only.
@@ -367,6 +575,20 @@ From the [migration spec](docs/superpowers/specs/2026-10-08-railway-postgres-mig
 _Drafted with AI assistance (Claude), reviewed and edited by me on 2026-10-25._
 
 I chose Zoho Mail (managed) over running my own mail server. Self-hosting means I would own the mail server software, its patching, spam reputation, and deliverability, and a misconfigured server can get my domain blocked. Zoho handles all of that; I only configure MX, SPF, DKIM, and DMARC in Cloudflare and verify the results. The trade-off is less control and dependence on Zoho’s free plan, which was acceptable for a resume address.
+
+### 3. AWS: EC2 + Single-AZ RDS (written before the work)
+
+From [`docs/aws-migration.md` §1](docs/aws-migration.md):
+
+- I compared three options: EC2 with PostgreSQL on the VM, EC2 with RDS, and
+  Lambda with API Gateway and RDS.
+- I chose **EC2 + Single-AZ RDS** over EC2 with PostgreSQL on the VM because
+  I'm optimizing for learning and want AWS to run the database (patching and
+  backups). Lambda would have needed app changes.
+- The trade-off is a second service and the largest cost line, RDS at about
+  $14 a month.
+- Single-AZ and no load balancer keep it inside the credits. The cost is no
+  automatic failover.
 
 ## Investigated failures
 
@@ -407,7 +629,8 @@ Doing this project showed me the difference between code working and a system be
 | Service | What's billable | Cost / credit | Expires or renews | Cleanup |
 | --- | --- | --- | --- | --- |
 | Azure for Students | VM `Standard_B2ats_v2` (compute, while running); 30 GB Standard SSD (E4) and a Standard public IP (billed even when deallocated) | Paid from student credit. Amount used and credit end date **unverified**: the CLI returns no cost, so check the portal | Credit end date **unverified** | Keep running until the instructor says. Then delete resource group `rg-career-platform` (VM, disk, IP, NIC, NSG, VNet, shutdown schedule) |
-| Railway | Web service and PostgreSQL usage | Trial: 30 days or $5 of usage, whichever comes first. **2026-10-25 16:39 PT: "13 days or $4.28 left"** (read from the Railway dashboard by me) | Trial ends about **2026-11-07**, or sooner if the $4.28 runs out. The Free plan allows no custom domain, so `mjbukhadhour.com` stops working on Railway after that | **Migrate to AWS before 2026-11-07.** Settle whether a public database endpoint exists (see limitations). Delete the project after AWS is live |
+| AWS (account 355258598994, Free plan) | EC2 t3.small, 16 GiB gp3, Elastic IP (also billed while the instance is stopped), RDS db.t4g.micro with 20 GiB gp3, manual snapshot `career-platform-db-pre-cutover` | Estimated **about $34 a month**, paid from **$120 credits** (2026-11-03). At that rate the credits last until about mid-February 2027. Zero-spend budget alert is on. Actual charges are **unverified**: my IAM user can't read billing, so check Billing → Credits | Credits and the Free plan end **Apr 29, 2027** | When done: turn off RDS deletion protection, delete RDS with a final snapshot, terminate EC2, release the Elastic IP, then delete the security groups, DB subnet group and key pair |
+| Railway | Web service and PostgreSQL usage | Trial: 30 days or $5 of usage, whichever comes first. **2026-10-25 16:39 PT: "13 days or $4.28 left"** (read from the Railway dashboard by me) | Trial ends about **2026-11-07**, or sooner if the $4.28 runs out. The Free plan allows no custom domain, so `mjbukhadhour.com` stops working on Railway after that **Migrated to AWS on 2026-11-05.** Kept as the rollback target. Delete the project once AWS is accepted, which also settles the old public database address (see limitations) |
 | Domain `mjbukhadhour.com` (Namecheap) | Registration | Price **unverified** | Registered 2026-10-01, expires **2027-10-01** (WHOIS) | Renew or let lapse after the course |
 | Cloudflare DNS | DNS, `www` redirect rule, edge certificate | Plan **unverified** in the dashboard (expected Free) | Edge cert valid to 2026-12-30, auto-renewed | Keep while the domain is used |
 | Zoho Mail | One mailbox | Plan **unverified** in the dashboard (expected Forever Free) | none known | Keep; remove MX/SPF/DKIM/DMARC if dropped |
@@ -415,6 +638,18 @@ Doing this project showed me the difference between code working and a system be
 | GA4 | Property `G-SE674YJENK` | Free | none | Delete the property if no longer used |
 
 ## Remaining limitations
+
+**AWS (2026-11-05):**
+
+- **RDS automated backups keep 1 day**, not 7. The Free plan refuses more, so weekly `pg_dump` copies are the main safety net.
+- **Single-AZ, one instance.** There's no failover. A failure means restoring from a snapshot or dump (RTO about 1 hour, section 2).
+- **Contact form email doesn't send** on AWS, and didn't on Railway either: no Resend key is set. Adding one is a separate change.
+- **Actual AWS costs are unverified**, because the course IAM user can't read billing.
+- **SSH only accepts one IP.** If my address changes, update the security group first.
+- **Deploys are manual.** A push to `main` updates Railway, while it exists, but not AWS.
+
+**Earlier hosts:**
+
 
 - **Database failure was verified only locally on SQLite**
   ([db-failure-recovery](docs/evidence/db-failure-recovery.md)), not as a
@@ -442,6 +677,6 @@ Doing this project showed me the difference between code working and a system be
 - **The VM's certificate can't auto-renew** while DNS points at Railway.
 - **Email hardening:** DKIM is 1024-bit and DMARC is `p=none`, which reports
   but doesn't enforce.
-- **Railway trial ends about 2026-11-07**, and the AWS migration must happen
-  before then. Azure costs and the Cloudflare and Zoho plans are still
+- **Railway trial ends about 2026-11-07.** The AWS migration was done on
+  2026-11-05. Azure costs and the Cloudflare and Zoho plans are still
   **unverified** (see Costs).

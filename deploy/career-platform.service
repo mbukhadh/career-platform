@@ -1,0 +1,22 @@
+# Installed as /etc/systemd/system/career-platform.service on the EC2 instance.
+# Runs the app as the non-root user "career", reachable only from Nginx on
+# the same machine. Secrets come from /etc/career-platform/env (root, mode 600).
+[Unit]
+Description=career-platform (FastAPI behind Nginx)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=career
+Group=career
+WorkingDirectory=/srv/career-platform
+EnvironmentFile=/etc/career-platform/env
+ExecStart=/srv/career-platform/.venv/bin/uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
